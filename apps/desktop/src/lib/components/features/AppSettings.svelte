@@ -19,16 +19,26 @@
   import Select from "$lib/components/ui/Select.svelte";
   import { onMount } from "svelte";
 
-  onMount(() => {
-    // Auto-fetch models for active provider if key exists
+  $effect(() => {
+    // Auto-fetch models when provider changes or API key is loaded/hydrated
     const activeProvider = uiState.aiSettings.activeProvider;
     const config = uiState.aiSettings.providers[activeProvider];
+    // We check if we have an API key (or it's custom), no models are loaded yet, and we aren't already fetching
     if (
-      config.apiKey &&
-      uiState.availableModels[activeProvider]?.length === 0
+      (config.apiKey || activeProvider === "custom") &&
+      (!uiState.availableModels[activeProvider] ||
+        uiState.availableModels[activeProvider].length === 0) &&
+      !uiState.isFetchingModels
     ) {
       uiState.fetchModels(activeProvider);
     }
+  });
+
+  $effect(() => {
+    // Track deep changes to AI settings
+    const _ = JSON.stringify(uiState.aiSettings);
+    // Debounce or just save directly? Debounce might be better but direct is fine for local
+    uiState.saveAISettings();
   });
 
   let searchQuery = $state("");
@@ -160,6 +170,7 @@
                   { value: "bounded", label: "Bounded" },
                 ]}
                 bind:value={settings.wordWrap}
+                class="ai-select"
               />
             </div>
           </div>
@@ -303,6 +314,7 @@
                   { value: "underline", label: "Underline" },
                 ]}
                 bind:value={settings.terminalCursorStyle}
+                class="ai-select"
               />
             </div>
           </div>
@@ -326,6 +338,7 @@
                 { value: "light", label: "Light Modern" },
               ]}
               bind:value={settings.theme}
+              class="ai-select"
             />
           </div>
         </div>
@@ -706,8 +719,12 @@
     box-sizing: border-box !important;
   }
 
+  :global(.small-input) {
+    width: 120px !important;
+  }
+
   :global(.ai-select) {
-    min-width: 260px !important;
+    width: 260px !important;
   }
 
   .model-select-wrapper {
@@ -722,7 +739,7 @@
   }
 
   :global(.ai-select.full-width) {
-    min-width: 260px !important;
+    width: 260px !important;
   }
 
   :global(.spin) {

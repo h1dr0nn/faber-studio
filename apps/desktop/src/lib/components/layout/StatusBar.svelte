@@ -6,6 +6,7 @@
     XCircle,
     Check,
   } from "lucide-svelte";
+  import { uiState } from "$lib/ui-state.svelte";
 
   let branch = "main";
   let errors = 0;
@@ -18,19 +19,31 @@
     <div class="status-item remote-indicator">
       <span>><span class="remote-text">Local</span></span>
     </div>
-    <div class="status-item clickable">
+    <button
+      class="status-item clickable"
+      onclick={() => (uiState.activeActivityId = "git")}
+    >
       <GitBranch size={12} />
       <span class="label">{branch}</span>
-    </div>
-    <div class="status-item clickable">
+    </button>
+    <button
+      class="status-item clickable"
+      onclick={() => uiState.refreshGitStatus()}
+    >
       <RefreshCw size={12} class={isSyncing ? "spin" : ""} />
-    </div>
-    <div class="status-item clickable error-stat">
+    </button>
+    <button
+      class="status-item clickable error-stat"
+      onclick={() => {
+        uiState.activeBottomPanelTab = "matrix";
+        uiState.isBottomPanelVisible = true;
+      }}
+    >
       <XCircle size={12} />
       <span class="label">{errors}</span>
       <AlertTriangle size={12} />
       <span class="label">{warnings}</span>
-    </div>
+    </button>
   </div>
 
   <div class="right-items">

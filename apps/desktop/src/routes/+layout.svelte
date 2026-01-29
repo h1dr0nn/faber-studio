@@ -59,6 +59,82 @@
           title={uiState.activeSidePanelTitle}
           borderSide="right"
           width="100%"
+          onmore={(e) => {
+            e.preventDefault();
+            const items = [];
+
+            if (uiState.activeActivityId === "explorer") {
+              items.push(
+                {
+                  label: "New File...",
+                  onclick: () => {
+                    const name = prompt("Enter file name:");
+                    if (name && uiState.projectRoot)
+                      uiState.createFile(uiState.projectRoot, name);
+                  },
+                },
+                {
+                  label: "New Folder...",
+                  onclick: () => {
+                    const name = prompt("Enter folder name:");
+                    if (name && uiState.projectRoot)
+                      uiState.createFolder(uiState.projectRoot, name);
+                  },
+                },
+                { separator: true },
+                {
+                  label: "Refresh Explorer",
+                  onclick: () => uiState.refreshFileTree(),
+                },
+                { label: "Collapse All", onclick: () => {} },
+              );
+            } else if (uiState.activeActivityId === "search") {
+              items.push({
+                label: "Clear Search Results",
+                onclick: () => uiState.clearSearchResults(),
+              });
+            } else if (uiState.activeActivityId === "git") {
+              items.push(
+                {
+                  label: "Refresh Status",
+                  onclick: () => uiState.refreshGitStatus(),
+                },
+                {
+                  label: "Commit Staged",
+                  onclick: () => {
+                    if (uiState.commitMessage)
+                      uiState.commitChanges(uiState.commitMessage);
+                    else alert("Please enter a commit message first.");
+                  },
+                },
+                { label: "Push", onclick: () => uiState.pushChanges() },
+                { label: "Pull", onclick: () => uiState.pullChanges() },
+              );
+            } else if (uiState.activeActivityId === "debug") {
+              items.push(
+                {
+                  label: "Debug Console",
+                  onclick: () => {
+                    uiState.activeBottomPanelTab = "matrix";
+                    uiState.isBottomPanelVisible = true;
+                  },
+                },
+                { separator: true },
+                {
+                  label: "Open launch.json",
+                  onclick: () =>
+                    uiState.openFile(
+                      `${uiState.projectRoot}/.vscode/launch.json`,
+                      "launch.json",
+                    ),
+                },
+              );
+            }
+
+            if (items.length > 0) {
+              uiState.showContextMenu(e.clientX, e.clientY, items);
+            }
+          }}
         >
           {#if uiState.activeActivityId === "explorer"}
             <div class="explorer-content">
@@ -404,6 +480,17 @@
           title={uiState.activeRightSidePanelTitle}
           borderSide="left"
           width="100%"
+          onmore={(e) => {
+            e.preventDefault();
+            // Generic options for now as right panel is mostly specific tools
+            uiState.showContextMenu(e.clientX, e.clientY, [
+              {
+                label: "Hide Side Bar",
+                onclick: () => uiState.toggleRightPanel(),
+              },
+              { label: "Move to Left", onclick: () => {} }, // Placeholder
+            ]);
+          }}
         >
           <div class="right-panel-content">
             {#if uiState.activeRightActivityId === "doctor"}

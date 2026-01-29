@@ -32,13 +32,22 @@
     if (e.target !== e.currentTarget) return;
     e.preventDefault();
     uiState.showContextMenu(e.clientX, e.clientY, [
-      { label: "Explorer", onclick: () => {} },
-      { label: "Search", onclick: () => {} },
-      { label: "Source Control", onclick: () => {} },
-      { label: "Run and Debug", onclick: () => {} },
+      {
+        label: "Explorer",
+        onclick: () => (uiState.activeActivityId = "explorer"),
+      },
+      { label: "Search", onclick: () => (uiState.activeActivityId = "search") },
+      {
+        label: "Source Control",
+        onclick: () => (uiState.activeActivityId = "git"),
+      },
+      {
+        label: "Run and Debug",
+        onclick: () => (uiState.activeActivityId = "debug"),
+      },
       { separator: true },
-      { label: "Accounts", onclick: () => {} },
-      { label: "Manage", onclick: () => {} },
+      { label: "Accounts", onclick: () => {}, disabled: true },
+      { label: "Manage", onclick: () => uiState.openSettings() },
     ]);
   }}
 >
@@ -53,8 +62,12 @@
           e.preventDefault();
           e.stopPropagation();
           uiState.showContextMenu(e.clientX, e.clientY, [
-            { label: `Hide '${action.label}'`, onclick: () => {} },
-            { label: "Reset Location", onclick: () => {} },
+            {
+              label: `Hide '${action.label}'`,
+              onclick: () => {},
+              disabled: true,
+            },
+            { label: "Reset Location", onclick: () => {}, disabled: true },
           ]);
         }}
         title={action.label}
@@ -78,7 +91,11 @@
           e.preventDefault();
           e.stopPropagation();
           uiState.showContextMenu(e.clientX, e.clientY, [
-            { label: `Hide '${action.label}'`, onclick: () => {} },
+            {
+              label: `Hide '${action.label}'`,
+              onclick: () => {},
+              disabled: true,
+            },
           ]);
         }}
         title={action.label}

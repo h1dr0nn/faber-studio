@@ -10,6 +10,7 @@
   } from "lucide-svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import TreeItem from "$lib/components/ui/TreeItem.svelte";
+  import { uiState } from "$lib/ui-state.svelte";
 
   let sections = $state({
     variables: true,
@@ -23,21 +24,44 @@
   <div class="debug-header">
     <div class="header-actions">
       <span>RUN AND DEBUG</span>
-      <div class="actions">
-        <button class="icon-btn" title="More Actions">
-          <MoreHorizontal size={14} />
-        </button>
-      </div>
+      <div class="actions"></div>
     </div>
 
     <div class="launch-box">
-      <Button variant="primary" size="sm" class="w-full launch-btn">
+      <Button
+        variant="primary"
+        size="sm"
+        class="w-full launch-btn"
+        onclick={() => {
+          uiState.activeBottomPanelTab = "matrix";
+          uiState.isBottomPanelVisible = true;
+          uiState.runTask(
+            "echo 'Starting Debug Session... (Authentication required for real debugging)'",
+          );
+        }}
+      >
         <Play size={14} fill="currentColor" />
         Run and Debug
       </Button>
       <div class="config-text">
-        To customize Run and Debug, <button class="link-btn"
-          >create a launch.json file</button
+        To customize Run and Debug, <button
+          class="link-btn"
+          onclick={() => {
+            if (uiState.projectRoot) {
+              uiState.createFile(
+                `${uiState.projectRoot}/.vscode`,
+                "launch.json",
+              );
+              setTimeout(
+                () =>
+                  uiState.openFile(
+                    `${uiState.projectRoot}/.vscode/launch.json`,
+                    "launch.json",
+                  ),
+                100,
+              );
+            }
+          }}>create a launch.json file</button
         >.
       </div>
     </div>

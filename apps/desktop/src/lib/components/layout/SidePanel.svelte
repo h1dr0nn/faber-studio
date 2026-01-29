@@ -6,6 +6,7 @@
     children: import("svelte").Snippet;
     borderSide?: "left" | "right" | "none";
     width?: string;
+    onmore?: (e: MouseEvent) => void;
   }
 
   let {
@@ -13,6 +14,7 @@
     children,
     borderSide = "right",
     width = "250px",
+    onmore,
   }: Props = $props();
 </script>
 
@@ -25,7 +27,13 @@
   <div class="panel-header">
     <span class="title">{title}</span>
     <div class="actions">
-      <button class="icon-btn">
+      <button
+        class="icon-btn"
+        onclick={(e) => {
+          e.stopPropagation();
+          onmore?.(e);
+        }}
+      >
         <MoreHorizontal size={16} />
       </button>
     </div>

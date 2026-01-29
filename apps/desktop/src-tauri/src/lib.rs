@@ -24,6 +24,9 @@ pub fn run() {
             commands::git::git_unstage,
             commands::git::git_commit,
             commands::git::git_diff_staged,
+            commands::git::git_push,
+            commands::git::git_pull,
+            commands::git::git_discard_changes,
             commands::config::save_config,
             commands::config::load_config,
         ])

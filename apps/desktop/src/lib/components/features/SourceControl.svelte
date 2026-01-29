@@ -18,12 +18,9 @@
   import { uiState } from "$lib/ui-state.svelte";
   import { onMount } from "svelte";
 
-  let commitMessage = $state("");
-
   async function handleCommit() {
-    if (!commitMessage) return;
-    await uiState.commitChanges(commitMessage);
-    commitMessage = "";
+    if (!uiState.commitMessage) return;
+    await uiState.commitChanges(uiState.commitMessage);
   }
 
   function handleStage(file: string) {
@@ -52,7 +49,7 @@
           title="Generate commit message with AI"
           onclick={async () => {
             const msg = await uiState.generateCommitMessage();
-            if (msg) commitMessage = msg;
+            if (msg) uiState.commitMessage = msg;
           }}
           disabled={uiState.isGeneratingCommitMessage}
         >
@@ -70,11 +67,17 @@
           <RefreshCw size={14} />
         </button>
 
-        <button class="icon-btn" title="Commit & Push">
+        <button
+          class="icon-btn"
+          title="Commit & Push"
+          onclick={async () => {
+            if (uiState.commitMessage) {
+              await uiState.commitChanges(uiState.commitMessage);
+            }
+            await uiState.pushChanges();
+          }}
+        >
           <CheckCheck size={14} />
-        </button>
-        <button class="icon-btn" title="More Actions">
-          <MoreHorizontal size={14} />
         </button>
       </div>
     </div>
@@ -84,7 +87,7 @@
         <textarea
           class="scm-textarea"
           placeholder="Message (Ctrl+Enter to commit on 'main')"
-          bind:value={commitMessage}
+          bind:value={uiState.commitMessage}
           onkeydown={(e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
               e.preventDefault();
@@ -98,7 +101,7 @@
           variant="primary"
           size="sm"
           class="w-full"
-          disabled={!commitMessage}
+          disabled={!uiState.commitMessage}
           onclick={handleCommit}>Commit</Button
         >
       </div>
@@ -178,7 +181,19 @@
                 >{item.path.split(/[\\/]/).slice(0, -1).join("/")}</span
               >
               <div class="item-actions">
-                <button class="icon-btn" title="Discard Changes">
+                <button
+                  class="icon-btn"
+                  title="Discard Changes"
+                  onclick={() => {
+                    if (
+                      confirm(
+                        `Are you sure you want to discard changes in ${item.path}?`,
+                      )
+                    ) {
+                      uiState.discardChanges(item.path);
+                    }
+                  }}
+                >
                   <Undo2 size={14} />
                 </button>
                 <button

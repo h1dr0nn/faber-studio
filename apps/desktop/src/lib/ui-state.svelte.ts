@@ -20,6 +20,7 @@ export function createUIState() {
   let recentProjects = $state<string[]>([]);
   let openTabs = $state<{ id: string; label: string; path: string; content: string; type?: "file" | "settings" | "welcome" }[]>([]);
   let activeTabId = $state<string | null>(null);
+  let commitMessage = $state("");
 
   // AI Settings
   let aiSettings = $state({
@@ -274,6 +275,9 @@ export function createUIState() {
         if (activeActivityId !== "search") { activeActivityId = "search"; activeSidePanelTitle = "SEARCH"; saveUIState(); }
       } catch (err) { console.error(err); }
     },
+    clearSearchResults() {
+      searchResults = [];
+    },
     get gitChanges() { return gitChanges; },
     async refreshGitStatus() {
       if (!projectRoot) return;
@@ -287,9 +291,23 @@ export function createUIState() {
       if (!projectRoot) return;
       try { await invoke("git_unstage", { path: projectRoot, file }); await this.refreshGitStatus(); } catch (err) { console.error(err); }
     },
+    get commitMessage() { return commitMessage; },
+    set commitMessage(value: string) { commitMessage = value; },
     async commitChanges(message: string) {
       if (!projectRoot) return;
-      try { await invoke("git_commit", { path: projectRoot, message }); await this.refreshGitStatus(); } catch (err) { console.error(err); }
+      try { await invoke("git_commit", { path: projectRoot, message }); await this.refreshGitStatus(); commitMessage = ""; } catch (err) { console.error(err); }
+    },
+    async pushChanges() {
+      if (!projectRoot) return;
+      try { await invoke("git_push", { path: projectRoot }); } catch (err) { console.error(err); }
+    },
+    async pullChanges() {
+      if (!projectRoot) return;
+      try { await invoke("git_pull", { path: projectRoot }); await this.refreshGitStatus(); } catch (err) { console.error(err); }
+    },
+    async discardChanges(file: string) {
+      if (!projectRoot) return;
+      try { await invoke("git_discard_changes", { path: projectRoot, file }); await this.refreshGitStatus(); } catch (err) { console.error(err); }
     },
 
     get aiSettings() { return aiSettings; },
@@ -365,7 +383,10 @@ export function createUIState() {
           else if (providerId === 'deepseek') baseUrl = "https://api.deepseek.com/models";
           else if (providerId === 'mistral') baseUrl = "https://api.mistral.ai/v1/models";
           else if (providerId === 'cohere') baseUrl = "https://api.cohere.ai/v1/models";
-          else if (providerId === 'custom') baseUrl = config.baseUrl.replace(/\/chat\/completions$/, "").replace(/\/completions$/, "") + "/models";
+          else if (providerId === 'custom') {
+            if (!config.baseUrl) return;
+            baseUrl = config.baseUrl.replace(/\/chat\/completions$/, "").replace(/\/completions$/, "") + "/models";
+          }
           const response = await fetch(baseUrl, { headers: providerId === 'azure' ? { 'api-key': config.apiKey } : { 'Authorization': `Bearer ${config.apiKey}` } });
           const data = await response.json();
           let rawModels: any[] = data.data || data.models || [];
@@ -374,6 +395,10 @@ export function createUIState() {
         const currentModels = _availableModels[providerId] || [];
         if (currentModels.length > 0 && !config.model) config.model = currentModels[0].id;
       } catch (err) { console.error(err); } finally { _isFetchingModels = false; }
+    },
+
+    saveAISettings() {
+      saveConfig("ai_settings", aiSettings);
     },
 
     get availableModels() { return _availableModels; },

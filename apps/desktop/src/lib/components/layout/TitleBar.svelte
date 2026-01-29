@@ -61,31 +61,103 @@
     {
       label: "File",
       sub: [
-        { label: "New File", onclick: () => {} },
-        { label: "Open File", onclick: () => {} },
+        {
+          label: "New File",
+          onclick: async () => {
+            const name = prompt("Enter file name (e.g. src/new_file.ts):");
+            if (name && uiState.projectRoot) {
+              await uiState.createFile(uiState.projectRoot, name);
+              const fullPath = `${uiState.projectRoot}/${name}`;
+              uiState.openFile(fullPath, name.split("/").pop() || name);
+            } else if (name) {
+              alert("Please open a project folder first.");
+            }
+          },
+        },
+        {
+          label: "Open File",
+          onclick: async () => {
+            // Currently using openFolder as primary project opener
+            uiState.openFolder();
+          },
+        },
         { label: "Open Folder", onclick: () => uiState.openFolder() },
         { separator: true },
-        { label: "Save", onclick: () => {} },
+        { label: "Save", onclick: () => uiState.saveActiveFile() },
         { label: "Exit", onclick: () => close() },
       ],
     },
     {
       label: "Edit",
       sub: [
-        { label: "Undo", onclick: () => {} },
-        { label: "Redo", onclick: () => {} },
+        { label: "Undo", onclick: () => document.execCommand("undo") },
+        { label: "Redo", onclick: () => document.execCommand("redo") },
+        { separator: true },
+        { label: "Cut", onclick: () => document.execCommand("cut") },
+        { label: "Copy", onclick: () => document.execCommand("copy") },
+        { label: "Paste", onclick: () => document.execCommand("paste") },
       ],
     },
     {
       label: "View",
       sub: [
-        { label: "Appearance", onclick: () => {} },
+        {
+          label: "Explorer",
+          onclick: () => {
+            uiState.activeActivityId = "explorer";
+            uiState.isSidePanelVisible = true;
+          },
+        },
+        {
+          label: "Search",
+          onclick: () => {
+            uiState.activeActivityId = "search";
+            uiState.isSidePanelVisible = true;
+          },
+        },
+        {
+          label: "Source Control",
+          onclick: () => {
+            uiState.activeActivityId = "git";
+            uiState.isSidePanelVisible = true;
+          },
+        },
+        { separator: true },
+        {
+          label: "Toggle Primary Side Bar",
+          onclick: () => uiState.toggleSidePanel(),
+        },
+        {
+          label: "Toggle Secondary Side Bar",
+          onclick: () => uiState.toggleRightPanel(),
+        },
+        { label: "Toggle Panel", onclick: () => uiState.toggleBottomPanel() },
         { separator: true },
         { label: "Settings", onclick: () => uiState.openSettings() },
       ],
     },
-    { label: "Run", sub: [{ label: "Start", onclick: () => {} }] },
-    { label: "Help", sub: [{ label: "About", onclick: () => {} }] },
+    {
+      label: "Run",
+      sub: [
+        {
+          label: "Start Debugging",
+          onclick: () => {
+            uiState.activeActivityId = "debug";
+            uiState.isSidePanelVisible = true;
+          },
+        },
+      ],
+    },
+    {
+      label: "Help",
+      sub: [
+        {
+          label: "About",
+          onclick: () =>
+            alert("Faber Studio\nVersion 0.0.1\n\n© 2026 Faber Studio"),
+        },
+      ],
+    },
   ];
 
   let activeMenu: string | null = $state(null);

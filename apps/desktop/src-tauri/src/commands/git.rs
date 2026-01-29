@@ -94,3 +94,30 @@ pub async fn git_diff_staged(path: String) -> AppResult<String> {
     
     Ok(String::from_utf8_lossy(&output.stdout).to_string())
 }
+
+#[tauri::command]
+pub async fn git_push(path: String) -> AppResult<()> {
+    Command::new("git")
+        .args(&["push"])
+        .current_dir(path)
+        .output()?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn git_pull(path: String) -> AppResult<()> {
+    Command::new("git")
+        .args(&["pull"])
+        .current_dir(path)
+        .output()?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn git_discard_changes(path: String, file: String) -> AppResult<()> {
+    Command::new("git")
+        .args(&["restore", &file])
+        .current_dir(path)
+        .output()?;
+    Ok(())
+}

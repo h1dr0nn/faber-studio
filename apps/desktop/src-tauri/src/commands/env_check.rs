@@ -9,7 +9,11 @@ fn get_version(cmd: &str, args: &[&str]) -> Option<String> {
         .ok()
         .and_then(|output| {
             if output.status.success() {
-                let s = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+                
+                let s = if !stdout.is_empty() { stdout } else { stderr };
+                
                 // Simple version extractor (usually it's the first line or has 'version' in it)
                 s.lines().next().map(|line| line.to_string())
             } else {
@@ -128,8 +132,15 @@ pub async fn check_environment(app: tauri::AppHandle) -> AppResult<Vec<CheckResu
 
     // Android Studio
     let studio_paths = [
+        // Windows
         "C:\\Program Files\\Android\\Android Studio\\bin\\studio64.exe",
         "C:\\Program Files\\Android\\Android Studio\\bin\\studio.exe",
+        // macOS
+        "/Applications/Android Studio.app",
+        "/Applications/Android Studio Preview.app",
+        // Linux
+        "/opt/android-studio/bin/studio.sh",
+        "/usr/local/android-studio/bin/studio.sh",
     ];
     let studio_found = studio_paths.iter().any(|p| std::path::Path::new(p).exists());
     results.push(CheckResult {
@@ -156,7 +167,7 @@ pub async fn check_environment(app: tauri::AppHandle) -> AppResult<Vec<CheckResu
         results.push(CheckResult {
             name: "Xcode".into(),
             status: xcode.is_some(),
-            version: xcode,
+            version: xcode.clone(),
             message: if xcode.is_none() { Some("Required for iOS development".into()) } else { None },
         });
     }

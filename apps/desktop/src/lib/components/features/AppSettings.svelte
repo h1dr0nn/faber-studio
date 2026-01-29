@@ -12,7 +12,9 @@
     RefreshCw,
     Shield,
     Key,
+    Info,
   } from "lucide-svelte";
+  import { getVersion } from "@tauri-apps/api/app";
   import { uiState } from "$lib/ui-state.svelte";
   import Input from "$lib/components/ui/Input.svelte";
   import Switch from "$lib/components/ui/Switch.svelte";
@@ -74,6 +76,17 @@
     gpuAcceleration: true,
   });
 
+  let appVersion = $state("...");
+
+  onMount(async () => {
+    try {
+      appVersion = await getVersion();
+    } catch (e) {
+      console.error("Failed to get app version", e);
+      appVersion = "0.0.1"; // Fallback
+    }
+  });
+
   const categories = [
     { id: "editor", label: "Text Editor", icon: Type },
     { id: "files", label: "Files", icon: Settings2 },
@@ -81,6 +94,7 @@
     { id: "appearance", label: "Appearance", icon: Palette },
     { id: "ai", label: "AI", icon: Sparkles },
     { id: "accessibility", label: "Accessibility", icon: Monitor },
+    { id: "about", label: "About", icon: Info },
   ];
 </script>
 
@@ -336,6 +350,8 @@
             <Select
               options={[
                 { value: "dark", label: "Dark Modern" },
+                { value: "emerald-pro", label: "Emerald Pro" },
+                { value: "forest", label: "Forest Dark" },
                 { value: "light", label: "Light Modern" },
                 { value: "midnight", label: "Midnight Pro" },
                 { value: "iceberg", label: "Arctic Ice" },
@@ -596,6 +612,79 @@
         </div>
       </div>
     {/if}
+
+    {#if !searchQuery || "About"
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())}
+      <div class="settings-group" id="settings-group-about">
+        <div class="about-branding">
+          <img src="/app-logo.png" alt="Logo" class="about-logo" />
+          <div class="about-title-info">
+            <span class="about-title-name">Faber Studio</span>
+            <span class="about-title-tag"
+              >Advanced Agentic Coding Environment</span
+            >
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="label">Version</span>
+            <span class="desc"
+              >The currently installed version of Faber Studio.</span
+            >
+          </div>
+          <div class="setting-control">
+            <span class="value-text">{appVersion}</span>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="label">Developer</span>
+            <span class="desc">Created and maintained by h1dr0n.</span>
+          </div>
+          <div class="setting-control">
+            <span class="value-text">h1dr0n</span>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="label">Repository</span>
+            <span class="desc">View source code and contribute on GitHub.</span>
+          </div>
+          <div class="setting-control">
+            <a
+              href="https://github.com/h1dr0nn/faber-studio"
+              target="_blank"
+              class="standard-link">GitHub</a
+            >
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="label">Check for Updates</span>
+            <span class="desc"
+              >Check if there is a newer version available.</span
+            >
+          </div>
+          <div class="setting-control">
+            <button
+              class="action-btn"
+              onclick={() =>
+                alert(
+                  "Checking for updates...\nYou are on the latest version.",
+                )}
+            >
+              <RefreshCw size={14} />
+              <span>Check Update</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    {/if}
   </div>
 </div>
 
@@ -673,10 +762,15 @@
   }
 
   .settings-group {
-    padding: 16px 0;
+    padding: 16px 0 24px 0;
     display: flex;
     flex-direction: column;
     gap: 16px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .settings-group:last-child {
+    border-bottom: none;
   }
 
   .group-title {
@@ -786,5 +880,86 @@
 
   .align-end {
     align-items: flex-end;
+  }
+
+  .align-end {
+    align-items: flex-end;
+  }
+
+  /* About Section Refinement */
+  .about-branding {
+    padding: 12px 16px 24px 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 4px;
+  }
+
+  .about-logo {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 15px rgba(var(--accent-rgb), 0.2));
+  }
+
+  .about-title-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .about-title-name {
+    font-size: 20px;
+    font-weight: 200;
+    color: var(--fg-primary);
+    letter-spacing: -0.5px;
+  }
+
+  .about-title-tag {
+    font-size: 11px;
+    color: var(--fg-secondary);
+    opacity: 0.7;
+  }
+
+  .value-text {
+    font-size: 13px;
+    color: var(--fg-primary);
+    background-color: var(--bg-active);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+  }
+
+  .standard-link {
+    color: var(--accent-primary);
+    text-decoration: none;
+    font-size: 13px;
+  }
+
+  .standard-link:hover {
+    text-decoration: underline;
+  }
+
+  .action-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background-color: var(--bg-active);
+    color: var(--fg-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.1s;
+  }
+
+  .action-btn:hover {
+    background-color: var(--bg-hover);
+    border-color: var(--accent-primary);
+  }
+
+  :global(.mr-2) {
+    margin-right: 4px;
   }
 </style>

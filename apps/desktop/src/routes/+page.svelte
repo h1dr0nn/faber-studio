@@ -6,7 +6,7 @@
 <div class="welcome-container">
   <div class="welcome-hero">
     <div class="logo-area">
-      <div class="app-logo"></div>
+      <img src="/app-logo.png" alt="Faber Studio Logo" class="app-logo" />
       <h1 class="app-name">Faber Studio</h1>
       <p class="app-tagline">Advanced Agentic Coding Environment</p>
     </div>
@@ -99,11 +99,11 @@
   }
 
   .app-logo {
-    width: 64px;
-    height: 64px;
-    background-color: var(--accent-primary);
-    border-radius: 12px;
-    margin-bottom: 16px;
+    width: 80px;
+    height: 80px;
+    margin-bottom: 24px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 20px rgba(var(--accent-rgb), 0.3));
   }
 
   .app-name {

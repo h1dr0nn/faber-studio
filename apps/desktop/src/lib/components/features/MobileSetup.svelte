@@ -28,7 +28,7 @@
       const result = await invoke<MobileDevice[]>("get_devices");
       devices = result;
     } catch (err: any) {
-      error = String(err);
+      error = err.message || JSON.stringify(err);
       console.error("Failed to fetch devices:", err);
     } finally {
       isLoading = false;
@@ -157,10 +157,6 @@
     color: #ff4646;
   }
 
-  .text-mute {
-    color: var(--fg-tertiary);
-  }
-
   .device-list {
     display: flex;
     flex-direction: column;
@@ -193,10 +189,6 @@
     font-size: 10px;
     color: var(--fg-tertiary);
     font-family: monospace;
-  }
-
-  .refresh-btn {
-    margin-top: 12px;
   }
 
   :global(.spin) {

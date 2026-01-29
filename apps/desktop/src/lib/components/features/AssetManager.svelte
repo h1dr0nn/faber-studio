@@ -9,9 +9,9 @@
   } from "lucide-svelte";
   import { onMount } from "svelte";
   import { uiState } from "$lib/ui-state.svelte";
-  import { invoke } from "@tauri-apps/api/core";
+  import { invoke, convertFileSrc } from "@tauri-apps/api/core";
   import { open } from "@tauri-apps/plugin-dialog";
-  import { convertFileSrc } from "@tauri-apps/api/core";
+  import Switch from "$lib/components/ui/Switch.svelte";
 
   let sourcePath = $state("");
   let targetDir = $state("");
@@ -20,6 +20,7 @@
     android: true,
     desktop: true,
   });
+  let applySquircle = $state(true);
 
   let isGenerating = $state(false);
   let progress = $state(0);
@@ -136,6 +137,7 @@
         sourcePath,
         targetDir: finalTargetDir,
         platforms: selectedPlatforms,
+        applySquircle,
       });
       progress = 100;
       message = { type: "success", text: "Generated icons successfully!" };
@@ -202,21 +204,28 @@
       </Button>
     </div>
 
-    <div class="section-title mt-4">Platforms</div>
-    <div class="checkbox-list">
-      <label class="checkbox-item">
-        <input type="checkbox" bind:checked={platforms.ios} />
-        <span>iOS ({iconSizes.ios.length} sizes)</span>
-      </label>
-      <label class="checkbox-item">
-        <input type="checkbox" bind:checked={platforms.android} />
-        <span>Android ({iconSizes.android.length} sizes)</span>
-      </label>
-      <label class="checkbox-item">
-        <input type="checkbox" bind:checked={platforms.desktop} />
-        <span>Desktop (.ico + .icns)</span>
-      </label>
+    <div class="section-title mt-4">Platforms & Options</div>
+    <div class="toggle-row">
+      <span class="toggle-label">iOS Icons ({iconSizes.ios.length} sizes)</span>
+      <Switch bind:checked={platforms.ios} label="iOS" />
     </div>
+    <div class="toggle-row">
+      <span class="toggle-label"
+        >Android Icons ({iconSizes.android.length} sizes)</span
+      >
+      <Switch bind:checked={platforms.android} label="Android" />
+    </div>
+    <div class="toggle-row">
+      <span class="toggle-label">Desktop Icons (.ico + .icns)</span>
+      <Switch bind:checked={platforms.desktop} label="Desktop" />
+    </div>
+
+    {#if platforms.desktop}
+      <div class="toggle-row standalone">
+        <span class="toggle-label">Native macOS squircle mask</span>
+        <Switch bind:checked={applySquircle} label="Squircle Mask" />
+      </div>
+    {/if}
 
     <!-- Icon Sizes Preview -->
     <div class="section-title mt-4">Output Sizes</div>
@@ -420,6 +429,25 @@
     gap: 8px;
     cursor: pointer;
     font-size: 13px;
+  }
+
+  .toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+  }
+
+  .toggle-row.standalone {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-subtle);
+    border-bottom: none;
+  }
+
+  .toggle-label {
+    font-size: 13px;
+    color: var(--fg-secondary);
   }
 
   .secondary-text {

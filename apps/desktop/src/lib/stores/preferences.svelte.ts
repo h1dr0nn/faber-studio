@@ -1,10 +1,10 @@
 // Preferences Store
 // Persists user settings to localStorage
 
-export type AppTheme = 'dark' | 'light' | 'midnight' | 'iceberg' | 'solar-light' | 'monolith' | 'system';
+export type AppTheme = 'dark' | 'light' | 'midnight' | 'iceberg' | 'solar-light' | 'monolith' | 'forest' | 'emerald-pro' | 'system';
 
 class PreferencesStore {
-  theme = $state<AppTheme>('dark');
+  theme = $state<AppTheme>('emerald-pro');
   animationsEnabled = $state(true);
   soundEnabled = $state(true);
   
@@ -18,7 +18,7 @@ class PreferencesStore {
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        this.theme = parsed.theme ?? 'dark';
+        this.theme = parsed.theme ?? 'emerald-pro';
         this.animationsEnabled = parsed.animationsEnabled ?? true;
         this.soundEnabled = parsed.soundEnabled ?? true;
       } catch (e) {

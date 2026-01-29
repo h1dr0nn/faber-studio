@@ -29,19 +29,24 @@
   --accent-success: #16825d; /* VS Code Green */
   --accent-warning: #e2c08d;
   --accent-error: #f14c4c;
+  --accent-rgb: 0, 122, 204;
   --border-subtle: #2b2b2b;
 
   --border-contrast: #454545;
-  
+
   /* Tabs */
   --tab-active-bg: #1f1f1f;
   --tab-inactive-bg: #181818;
   --tab-border: #2b2b2b;
 
   /* Typography */
-  --font-mono: "JetBrains Mono", "Fira Code", Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  
+  --font-mono:
+    "JetBrains Mono", "Fira Code", Consolas, Monaco, "Andale Mono",
+    "Ubuntu Mono", monospace;
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+
   --text-xs: 11px;
   --text-sm: 13px;
   --text-base: 14px;
@@ -75,8 +80,9 @@
   --accent-success: #3ad900;
   --accent-warning: #bf8803;
   --accent-error: #e51400;
+  --accent-rgb: 0, 122, 204;
   --border-subtle: #e4e4e4;
-  
+
   --border-contrast: #d4d4d4;
 
   /* Tabs */
@@ -110,6 +116,7 @@
   --accent-success: #50fa7b;
   --accent-warning: #f1fa8c;
   --accent-error: #ff5555;
+  --accent-rgb: 189, 147, 249;
   --border-subtle: #44475a;
   --border-contrast: #191a21;
 
@@ -143,6 +150,7 @@
   --accent-success: #a3be8c;
   --accent-warning: #ebcb8b;
   --accent-error: #bf616a;
+  --accent-rgb: 136, 192, 208;
   --border-subtle: #3b4252;
   --border-contrast: #242933;
 
@@ -176,12 +184,81 @@
   --accent-success: #859900;
   --accent-warning: #b58900;
   --accent-error: #dc322f;
+  --accent-rgb: 38, 139, 210;
   --border-subtle: #d6d1c2;
   --border-contrast: #93a1a1;
 
   --tab-active-bg: #fdf6e3;
   --tab-inactive-bg: #eee8d5;
   --tab-border: #d6d1c2;
+}
+
+[data-theme="forest"] {
+  /* FOREST DARK (Logo Matched) */
+  --bg-app: #080c0c;
+  --bg-title-bar: #060a0a;
+  --bg-activity-bar: #080c0c;
+  --bg-sidebar: #080c0c;
+  --bg-editor: #0b0f0f;
+  --bg-panel: #080c0c;
+  --bg-status-bar: #064e3b;
+  --bg-status-bar-remote: #10b981;
+
+  --bg-input: #111818;
+  --bg-hover: #132121;
+  --bg-active: #132c2c;
+  --bg-selection: #064e3b;
+
+  --fg-primary: #ecfdf5;
+  --fg-secondary: #6ee7b7;
+  --fg-on-accent: #ffffff;
+
+  --accent-primary: #10b981;
+  --accent-focus-border: #34d399;
+  --accent-success: #10b981;
+  --accent-warning: #fbbf24;
+  --accent-error: #ef4444;
+  --accent-rgb: 16, 185, 129;
+  --border-subtle: #111818;
+  --border-contrast: #064e3b;
+
+  --tab-active-bg: #0b0f0f;
+  --tab-inactive-bg: #080c0c;
+  --tab-border: #111818;
+}
+
+[data-theme="emerald-pro"] {
+  /* EMERALD PRO (Logo Background + Neutral Text) */
+  --bg-app: #080c0c;
+  --bg-title-bar: #060a0a;
+  --bg-activity-bar: #080c0c;
+  --bg-sidebar: #080c0c;
+  --bg-editor: #0b0f0f;
+  --bg-panel: #080c0c;
+  --bg-status-bar: #064e3b;
+  --bg-status-bar-remote: #10b981;
+
+  --bg-input: #111818;
+  --bg-hover: #132121;
+  --bg-active: #132c2c;
+  --bg-selection: #064e3b;
+
+  --fg-primary: #f8f8f2;
+  --fg-secondary: #8b949e;
+  --fg-on-accent: #ffffff;
+
+  --accent-primary: #10b981;
+  --accent-focus-border: #34d399;
+  --accent-success: #10b981;
+  --accent-warning: #fbbf24;
+  --accent-error: #ef4444;
+  --accent-rgb: 16, 185, 129;
+  --border-subtle: #111818;
+  --border-contrast: #064e3b;
+
+  --tab-active-bg: #0b0f0f;
+  --tab-inactive-bg: #080c0c;
+  --tab-border: #111818;
 }
 
 [data-theme="monolith"] {
@@ -209,6 +286,7 @@
   --accent-success: #a6e22e;
   --accent-warning: #fd971f;
   --accent-error: #f92672;
+  --accent-rgb: 249, 38, 114;
   --border-subtle: #3e3d32;
   --border-contrast: #171814;
 

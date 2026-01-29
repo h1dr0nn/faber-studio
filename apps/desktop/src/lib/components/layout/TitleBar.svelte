@@ -210,7 +210,7 @@
 <header class="title-bar" data-tauri-drag-region role="presentation">
   <div class="left-section">
     <div class="app-icon">
-      <div class="icon-placeholder"></div>
+      <img src="/app-logo-sm.png" alt="Logo" class="mini-logo" />
     </div>
 
     <nav class="menubar">
@@ -397,12 +397,19 @@
     padding-left: 8px;
   }
 
-  .icon-placeholder {
-    width: 16px;
-    height: 16px;
-    background-color: var(--accent-primary);
-    margin-right: 12px;
-    /* icon placeholder should be draggable, so let it be none/through */
+  .app-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    margin-right: 10px;
+  }
+
+  .mini-logo {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    display: block;
   }
 
   .menubar {

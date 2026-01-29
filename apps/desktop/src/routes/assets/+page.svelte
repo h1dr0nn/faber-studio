@@ -1,7 +1,11 @@
 <script lang="ts">
-  import Panel from '$lib/components/ui/Panel.svelte';
-  import Button from '$lib/components/ui/Button.svelte';
-  import { Image } from 'lucide-svelte';
+  import Panel from "$lib/components/ui/Panel.svelte";
+  import Button from "$lib/components/ui/Button.svelte";
+  import Switch from "$lib/components/ui/Switch.svelte";
+  import { Image } from "lucide-svelte";
+
+  let desktopCheckbox: HTMLInputElement;
+  let applySquircle = $state(true);
 </script>
 
 <div class="page-container">
@@ -16,24 +20,27 @@
       <Button variant="outline" size="sm">Choose File</Button>
     </div>
   </Panel>
-  
+
   <div class="grid">
-    <Panel title="Platform Selection">
-      <div class="checkbox-list">
-        <label class="checkbox-item">
-          <input type="checkbox" checked />
-          <span>iOS</span>
-        </label>
-        <label class="checkbox-item">
-          <input type="checkbox" checked />
-          <span>Android</span>
-        </label>
-        <label class="checkbox-item">
-          <input type="checkbox" checked />
-          <span>Desktop (Windows, macOS, Linux)</span>
-        </label>
+    <Panel title="Platforms & Options">
+      <div class="toggle-row">
+        <span class="toggle-label">iOS Icons</span>
+        <Switch label="iOS" checked />
       </div>
-      
+      <div class="toggle-row">
+        <span class="toggle-label">Android Icons</span>
+        <Switch label="Android" checked />
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Desktop Icons (.ico + .icns)</span>
+        <Switch label="Desktop" checked />
+      </div>
+
+      <div class="toggle-row standalone">
+        <span class="toggle-label">Apply native macOS squircle mask</span>
+        <Switch bind:checked={applySquircle} label="Apply native squircle" />
+      </div>
+
       <div class="actions">
         <Button variant="primary">Generate Icons</Button>
       </div>
@@ -60,11 +67,6 @@
     font-weight: 500;
     margin: 0;
   }
-
-  .upload-panel {
-    margin-bottom: 16px;
-  }
-
   .drop-zone {
     border: 2px dashed var(--border-subtle);
     border-radius: 6px;
@@ -86,33 +88,33 @@
     color: var(--fg-secondary);
     font-size: var(--text-sm);
   }
-  
+
   .grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: 16px;
   }
-  
-  .checkbox-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .checkbox-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    font-size: var(--text-sm);
-  }
-  
+
   .actions {
     margin-top: 16px;
   }
-  
-  /* Text mute utility reuse */
-  .text-mute {
+
+  .toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+  }
+
+  .toggle-row.standalone {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-subtle);
+    border-bottom: none;
+  }
+
+  .toggle-label {
+    font-size: var(--text-sm);
     color: var(--fg-secondary);
   }
 </style>

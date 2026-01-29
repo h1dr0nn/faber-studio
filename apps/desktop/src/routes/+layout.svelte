@@ -26,6 +26,7 @@
   } from "lucide-svelte";
   import { uiState } from "$lib/ui-state.svelte";
   import { appConsole } from "$lib/stores/console.svelte";
+  import { onMount } from "svelte";
 
   import Doctor from "$lib/components/features/Doctor.svelte";
   import Initialize from "$lib/components/features/Initialize.svelte";
@@ -40,6 +41,10 @@
 
   let { children } = $props();
   let activeTab = $state("page");
+
+  onMount(() => {
+    uiState.init();
+  });
 </script>
 
 <div class="app-shell">
@@ -128,7 +133,7 @@
               </div>
 
               {#snippet RenderTree(node: any, depth: number)}
-                {#if node.children}
+                {#if node && node.children}
                   {#each node.children as child}
                     <TreeItem
                       label={child.name}
@@ -231,7 +236,7 @@
         <ResizeHandle
           direction="horizontal"
           side="right"
-          onresize={(delta) => {
+          onresize={(delta: number) => {
             uiState.sidebarWidth = Math.max(
               150,
               Math.min(600, uiState.sidebarWidth + delta),
@@ -274,21 +279,7 @@
           </main>
         {:else}
           <div class="editor-placeholder">
-            <div class="welcome-screen">
-              <h1>Faber Studio</h1>
-              <p>Select a file to start editing</p>
-              <div class="shortcuts">
-                <div class="shortcut-item">
-                  <span>Open Folder</span> <kbd>Ctrl+O</kbd>
-                </div>
-                <div class="shortcut-item">
-                  <span>Save File</span> <kbd>Ctrl+S</kbd>
-                </div>
-                <div class="shortcut-item">
-                  <span>Command Palette</span> <kbd>Ctrl+Shift+P</kbd>
-                </div>
-              </div>
-            </div>
+            {@render children()}
           </div>
         {/if}
       </div>
@@ -298,7 +289,7 @@
           <ResizeHandle
             direction="vertical"
             side="top"
-            onresize={(delta) => {
+            onresize={(delta: number) => {
               uiState.bottomPanelHeight = Math.max(
                 100,
                 Math.min(600, uiState.bottomPanelHeight - delta),
@@ -402,9 +393,9 @@
         <ResizeHandle
           direction="horizontal"
           side="left"
-          onresize={(delta) => {
+          onresize={(delta: number) => {
             uiState.rightSidebarWidth = Math.max(
-              150,
+              360,
               Math.min(600, uiState.rightSidebarWidth - delta),
             );
           }}
@@ -453,13 +444,7 @@
     flex: 1;
     display: flex;
     overflow: hidden;
-  }
-
-  .side-panel-wrapper {
-    height: 100%;
-    display: flex;
-    overflow: visible;
-    position: relative;
+    width: 100%;
   }
 
   .editor-stack {
@@ -468,14 +453,16 @@
     flex-direction: column;
     overflow: hidden;
     min-width: 0;
+    position: relative;
+    background-color: var(--bg-editor);
   }
 
   .editor-area {
     display: flex;
     flex-direction: column;
     flex: 1;
-    background-color: var(--bg-editor);
     overflow: hidden;
+    position: relative;
   }
 
   .explorer-content {
@@ -556,67 +543,18 @@
     background: transparent;
   }
 
-  .code-editor pre {
-    margin: 0;
-  }
-
-  .editor-placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    background-color: var(--bg-app);
-  }
-
-  .welcome-screen {
-    text-align: center;
-    color: var(--fg-secondary);
-    max-width: 400px;
-  }
-
-  .welcome-screen h1 {
-    font-size: 48px;
-    font-weight: 200;
-    margin-bottom: 8px;
-    opacity: 0.1;
-    letter-spacing: -1px;
-  }
-
-  .welcome-screen p {
-    margin-bottom: 32px;
-    font-size: 14px;
-    opacity: 0.6;
-  }
-
-  .shortcuts {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .shortcut-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 13px;
-    opacity: 0.5;
-  }
-
-  .shortcut-item kbd {
-    background-color: var(--bg-active);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-family: inherit;
-    font-size: 11px;
-    min-width: 40px;
-    text-align: center;
-  }
-
   .editor-content {
     flex: 1;
     overflow: hidden;
     position: relative;
     padding: 0;
+  }
+
+  .side-panel-wrapper {
+    height: 100%;
+    display: flex;
+    overflow: visible;
+    position: relative;
   }
 
   .right-panel-wrapper {

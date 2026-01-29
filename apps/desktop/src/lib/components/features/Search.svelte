@@ -9,6 +9,7 @@
     Replace,
     ListFilter,
     X,
+    Loader2,
   } from "lucide-svelte";
   import Input from "$lib/components/ui/Input.svelte";
   import Button from "$lib/components/ui/Button.svelte";
@@ -19,11 +20,30 @@
   let replaceQuery = $state("");
   let isReplaceVisible = $state(false);
   let isIncludesVisible = $state(false);
+  let isSearching = $state(false);
 
   let searchOptions = $state({
     matchCase: false,
     wholeWord: false,
     useRegex: false,
+  });
+
+  // Debounce timer
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  // Auto-search with debounce when query changes
+  $effect(() => {
+    if (debounceTimer) clearTimeout(debounceTimer);
+
+    if (searchQuery.trim().length >= 2) {
+      isSearching = true;
+      debounceTimer = setTimeout(async () => {
+        await uiState.searchProject(searchQuery);
+        isSearching = false;
+      }, 300);
+    } else {
+      isSearching = false;
+    }
   });
 
   // Group flat results by file
@@ -41,6 +61,7 @@
 
   function handleSearch(e: KeyboardEvent) {
     if (e.key === "Enter") {
+      if (debounceTimer) clearTimeout(debounceTimer);
       uiState.searchProject(searchQuery);
     }
   }
@@ -130,7 +151,12 @@
   <div class="results-area">
     {#if searchQuery}
       <div class="results-header">
-        {groupedResults.length} files found
+        {#if isSearching}
+          <Loader2 size={12} class="spin" />
+          <span>Searching...</span>
+        {:else}
+          {groupedResults.length} files found
+        {/if}
       </div>
       <div class="results-list">
         {#each groupedResults as result}

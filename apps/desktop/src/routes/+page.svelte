@@ -1,123 +1,169 @@
 <script lang="ts">
-  import Panel from '$lib/components/ui/Panel.svelte';
-  import Button from '$lib/components/ui/Button.svelte';
-  
-  // Placeholder for real Doctor logic
-  let loading = $state(false);
-  let checks = $state([
-    { name: 'Node.js', status: 'success', version: 'v20.10.0' },
-    { name: 'Rust', status: 'success', version: '1.75.0' },
-    { name: 'Cargo', status: 'success', version: '1.75.0' },
-    { name: 'Tauri CLI', status: 'warning', version: 'v1.5.0 (outdated)' },
-    { name: 'Android SDK', status: 'error', message: 'Not found' },
-  ]);
-
-  function runCheck() {
-    loading = true;
-    setTimeout(() => {
-      loading = false;
-    }, 1000);
-  }
+  import { uiState } from "$lib/ui-state.svelte";
+  import { FolderOpen, PlusSquare, Github, Command } from "lucide-svelte";
 </script>
 
-<div class="page-container">
-  <div class="header">
-    <h1 class="page-title">Environment Doctor</h1>
-    <Button variant="primary" size="sm" onclick={runCheck} disabled={loading}>
-      {loading ? 'Scanning...' : 'Run Checks'}
-    </Button>
-  </div>
+<div class="welcome-container">
+  <div class="welcome-hero">
+    <div class="logo-area">
+      <div class="app-logo"></div>
+      <h1 class="app-name">Faber Studio</h1>
+      <p class="app-tagline">Advanced Agentic Coding Environment</p>
+    </div>
 
-  <div class="grid">
-    <Panel title="System Status" class="col-span-1 h-full">
-      <div class="check-list">
-        {#each checks as check}
-          <div class="check-item">
-            <div class="check-icon {check.status}"></div>
-            <div class="check-info">
-              <span class="check-name">{check.name}</span>
-              {#if check.version}
-                <span class="check-meta mono">{check.version}</span>
-              {/if}
-              {#if check.message}
-                <span class="check-meta text-error">{check.message}</span>
-              {/if}
-            </div>
-          </div>
-        {/each}
+    <div class="welcome-grid">
+      <div class="welcome-section">
+        <h3>Start</h3>
+        <button class="welcome-button" onclick={() => uiState.openFolder()}>
+          <FolderOpen size={18} />
+          <span>Open Folder...</span>
+        </button>
+        <button
+          class="welcome-button"
+          onclick={() => (uiState.activeRightActivityId = "init")}
+        >
+          <PlusSquare size={18} />
+          <span>New Project...</span>
+        </button>
+        <button class="welcome-button">
+          <Github size={18} />
+          <span>Clone Repository...</span>
+        </button>
       </div>
-    </Panel>
+
+      <div class="welcome-section">
+        <h3>Recent</h3>
+        <div class="recent-empty">No recent folders</div>
+      </div>
+    </div>
+
+    <div class="shortcuts-footer">
+      <div class="shortcut-item">
+        <span class="label">Show All Commands</span>
+        <span class="key-hint">Ctrl+Shift+P</span>
+      </div>
+      <div class="shortcut-item">
+        <span class="label">Go to File</span>
+        <span class="key-hint">Ctrl+P</span>
+      </div>
+      <div class="shortcut-item">
+        <span class="label">Find in Files</span>
+        <span class="key-hint">Ctrl+Shift+F</span>
+      </div>
+    </div>
   </div>
 </div>
 
 <style>
-  .page-container {
-    padding: 24px;
+  .welcome-container {
     height: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .header {
+    width: 100%;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--border-subtle);
+    justify-content: center;
+    background-color: var(--bg-editor);
+    color: var(--fg-primary);
   }
 
-  .page-title {
-    font-size: 18px;
-    font-weight: 500;
+  .welcome-hero {
+    max-width: 800px;
+    width: 100%;
+    padding: 40px;
+  }
+
+  .logo-area {
+    margin-bottom: 64px;
+  }
+
+  .app-logo {
+    width: 64px;
+    height: 64px;
+    background-color: var(--accent-primary);
+    border-radius: 12px;
+    margin-bottom: 16px;
+  }
+
+  .app-name {
+    font-size: 42px;
+    font-weight: 200;
     margin: 0;
+    color: var(--fg-primary);
+    letter-spacing: -0.5px;
   }
 
-  .grid {
+  .app-tagline {
+    font-size: 16px;
+    color: var(--fg-secondary);
+    margin: 4px 0 0 0;
+  }
+
+  .welcome-grid {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 16px;
-    flex: 1;
-    min-height: 0; 
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    margin-bottom: 64px;
   }
 
-  .check-list {
+  .welcome-section h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--fg-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+  }
+
+  .welcome-button {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 8px 0;
+    background: transparent;
+    border: none;
+    color: var(--accent-primary);
+    font-size: 14px;
+    cursor: pointer;
+    text-align: left;
+    transition: color 0.1s;
+  }
+
+  .welcome-button:hover {
+    color: var(--fg-primary);
+    text-decoration: underline;
+  }
+
+  .recent-empty {
+    font-size: 13px;
+    color: var(--fg-tertiary);
+    font-style: italic;
+  }
+
+  .shortcuts-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .shortcut-item {
+    display: flex;
+    align-items: center;
     gap: 8px;
   }
 
-  .check-item {
-    display: flex;
-    align-items: center;
-    padding: 8px;
-    background-color: var(--bg-app);
-    border: 1px solid var(--border-subtle);
-    border-radius: 4px;
-  }
-
-  .check-icon {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: 12px;
-  }
-  
-  .check-icon.success { background-color: var(--accent-success); }
-  .check-icon.warning { background-color: var(--accent-warning); }
-  .check-icon.error { background-color: var(--accent-error); }
-
-  .check-info {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .check-name {
-    font-weight: 500;
-  }
-
-  .check-meta {
-    font-size: var(--text-xs);
+  .shortcut-item .label {
+    font-size: 12px;
     color: var(--fg-secondary);
+  }
+
+  .shortcut-item .key-hint {
+    font-size: 11px;
+    background-color: var(--bg-active);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--fg-primary);
+    font-family: var(--font-mono);
   }
 </style>

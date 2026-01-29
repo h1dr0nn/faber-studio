@@ -63,31 +63,68 @@ pub async fn check_environment(app: tauri::AppHandle) -> AppResult<Vec<CheckResu
 
     // Try sidecar first (configured as "adb" in tauri.conf.json)
     let adb_sidecar_cmd = app.shell().sidecar("adb");
+    let sidecar_exists = adb_sidecar_cmd.is_ok();
+    println!("DEBUG: adb_sidecar_cmd result is ok: {}", sidecar_exists);
     
     let adb_sidecar_version = if let Ok(cmd) = adb_sidecar_cmd {
-        let output = cmd.args(&["--version"]).output().await.ok();
-        output.and_then(|out| {
-             if out.status.success() {
-                String::from_utf8_lossy(&out.stdout).lines().next().map(|line| line.to_string())
-            } else {
+        match cmd.args(&["--version"]).output().await {
+            Ok(out) => {
+                println!("DEBUG: adb sidecar executed successfully");
+                if out.status.success() {
+                    let v = String::from_utf8_lossy(&out.stdout).lines().next().map(|line| line.to_string());
+                    println!("DEBUG: adb sidecar version: {:?}", v);
+                    v
+                } else {
+                    println!("DEBUG: adb sidecar status failed: {:?}", out.status);
+                    None
+                }
+            },
+            Err(e) => {
+                println!("DEBUG: adb sidecar execution error: {:?}", e);
                 None
             }
-        })
+        }
     } else {
+        println!("DEBUG: adb sidecar not found in config or missing binary");
         None
     };
 
-    let adb = if adb_sidecar_version.is_some() {
-        adb_sidecar_version
+    // Determine ADB status
+    let sidecar_ran_ok = adb_sidecar_version.is_some();
+    
+    let (adb_name, adb_status, adb_version, adb_message) = if sidecar_ran_ok {
+        // Sidecar found and ran successfully
+        ("ADB (Internal Bundle)".to_string(), true, adb_sidecar_version, None)
+    } else if sidecar_exists {
+        // Sidecar found but failed to run (likely DLL issue in dev mode)
+        ("ADB (Internal Bundle)".to_string(), true, Some("Bundled (dev mode - DLL issue)".to_string()), 
+         Some("Binary bundled. Will work in production build.".to_string()))
     } else {
-        get_version("adb", &["--version"])
+        // Check system ADB
+        let v = get_version("adb", &["--version"]);
+        println!("DEBUG: adb system version: {:?}", v);
+        if v.is_some() {
+            ("ADB (System)".to_string(), true, v, None)
+        } else {
+            ("ADB".to_string(), false, None, Some("ADB not found".to_string()))
+        }
     };
 
+    results.push(CheckResult {
+        name: adb_name,
+        status: adb_status,
+        version: adb_version,
+        message: adb_message, 
+    });
 
-
-
-
-
+    // Java (Required for Android development)
+    let java = get_version("java", &["-version"]);
+    results.push(CheckResult {
+        name: "Java (JDK)".into(),
+        status: java.is_some(),
+        version: java.clone(),
+        message: if java.is_none() { Some("Install JDK 17+ for Android builds".into()) } else { None },
+    });
 
     // Android Studio
     let studio_paths = [

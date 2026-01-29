@@ -84,3 +84,13 @@ pub async fn git_commit(path: String, message: String) -> AppResult<()> {
         .output()?;
     Ok(())
 }
+
+#[tauri::command]
+pub async fn git_diff_staged(path: String) -> AppResult<String> {
+    let output = Command::new("git")
+        .args(&["diff", "--staged"])
+        .current_dir(path)
+        .output()?;
+    
+    Ok(String::from_utf8_lossy(&output.stdout).to_string())
+}

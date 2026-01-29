@@ -1,5 +1,5 @@
 use crate::errors::AppResult;
-use tauri::{AppHandle, Manager, Emitter};
+use tauri::{AppHandle, Emitter};
 use std::process::{Command, Stdio};
 use std::io::{BufRead, BufReader};
 use std::thread;
@@ -14,16 +14,18 @@ pub async fn run_command(app: AppHandle, command: String, args: Vec<String>, cwd
         // Prepare command
         // On Windows, shelling out to cmd /C is often safer for "npm", "pnpm" which are batches
         #[cfg(target_os = "windows")]
-        let (prog, final_args) = ("cmd", [&["/C", &command], &args[..]].concat());
+        let (prog, final_args) = {
+            let mut a = vec!["/C".to_string(), command];
+            a.extend(args);
+            ("cmd", a)
+        };
         
         #[cfg(not(target_os = "windows"))]
-        let (prog, final_args) = (command.as_str(), args);
+        let (prog, final_args) = (command, args);
 
         let mut cmd = Command::new(prog);
-        #[cfg(target_os = "windows")]
-        cmd.args(final_args);
-        #[cfg(not(target_os = "windows"))]
-        cmd.args(final_args);
+        cmd.args(&final_args);
+
         
         // Hide window on Windows to avoid popping up console windows
         #[cfg(target_os = "windows")]

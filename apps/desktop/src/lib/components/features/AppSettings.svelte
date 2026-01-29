@@ -8,10 +8,28 @@
     Monitor,
     ChevronRight,
     Search,
+    Sparkles,
+    RefreshCw,
+    Shield,
+    Key,
   } from "lucide-svelte";
+  import { uiState } from "$lib/ui-state.svelte";
   import Input from "$lib/components/ui/Input.svelte";
   import Switch from "$lib/components/ui/Switch.svelte";
   import Select from "$lib/components/ui/Select.svelte";
+  import { onMount } from "svelte";
+
+  onMount(() => {
+    // Auto-fetch models for active provider if key exists
+    const activeProvider = uiState.aiSettings.activeProvider;
+    const config = uiState.aiSettings.providers[activeProvider];
+    if (
+      config.apiKey &&
+      uiState.availableModels[activeProvider]?.length === 0
+    ) {
+      uiState.fetchModels(activeProvider);
+    }
+  });
 
   let searchQuery = $state("");
   let settings = $state({
@@ -50,6 +68,7 @@
     { id: "files", label: "Files", icon: Settings2 },
     { id: "terminal", label: "Terminal", icon: Keyboard },
     { id: "appearance", label: "Appearance", icon: Palette },
+    { id: "ai", label: "AI", icon: Sparkles },
     { id: "accessibility", label: "Accessibility", icon: Monitor },
   ];
 </script>
@@ -313,6 +332,232 @@
       </div>
     {/if}
 
+    {#if !searchQuery || "AI"
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) || "provider api key instructions model base url organization authentication".includes(searchQuery.toLowerCase())}
+      {@const activeProvider = uiState.aiSettings.activeProvider}
+      {@const config = uiState.aiSettings.providers[activeProvider]}
+      <div class="settings-group" id="settings-group-ai">
+        <span class="group-title">AI Configuration</span>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="label">AI Provider</span>
+            <span class="desc"
+              >Select the AI service to use for code assistance and commit
+              generation.</span
+            >
+          </div>
+          <div class="setting-control">
+            <Select
+              class="ai-select"
+              options={[
+                { value: "gemini", label: "Google Gemini" },
+                { value: "openai", label: "OpenAI / ChatGPT" },
+                { value: "anthropic", label: "Anthropic Claude" },
+                { value: "grok", label: "xAI Grok" },
+                { value: "deepseek", label: "DeepSeek" },
+                { value: "mistral", label: "Mistral AI" },
+                { value: "cohere", label: "Cohere" },
+                { value: "azure", label: "Azure OpenAI" },
+                { value: "openrouter", label: "OpenRouter" },
+                { value: "ollama", label: "Ollama (Local)" },
+                { value: "custom", label: "Custom (OpenAI Compatible)" },
+              ]}
+              bind:value={uiState.aiSettings.activeProvider}
+              onchange={() =>
+                uiState.fetchModels(uiState.aiSettings.activeProvider)}
+            />
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="label">Authentication</span>
+            <span class="desc"
+              >Choose how to authenticate with this provider.</span
+            >
+          </div>
+          <div class="setting-control">
+            <Select
+              class="ai-select"
+              options={[
+                { value: "apiKey", label: "API Key" },
+                {
+                  value: "oauth",
+                  label: "OAuth (Coming Soon)",
+                  disabled: true,
+                },
+              ]}
+              bind:value={config.authMethod}
+            />
+          </div>
+        </div>
+
+        {#if activeProvider === "azure"}
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="label">Endpoint URL</span>
+              <span class="desc"
+                >Your Azure OpenAI resource endpoint (e.g.
+                https://res-name.openai.azure.com/).</span
+              >
+            </div>
+            <div class="setting-control">
+              <Input
+                bind:value={config.baseUrl}
+                placeholder="https://your-resource.openai.azure.com/"
+                class="large-input"
+              />
+            </div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="label">Deployment Name</span>
+              <span class="desc">The name of the model deployment.</span>
+            </div>
+            <div class="setting-control">
+              <Input
+                bind:value={config.deploymentName}
+                placeholder="gpt-4o"
+                class="large-input"
+              />
+            </div>
+          </div>
+        {/if}
+
+        {#if activeProvider === "ollama" || activeProvider === "custom"}
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="label">Base URL</span>
+              <span class="desc"
+                >{activeProvider === "ollama"
+                  ? "The Ollama API endpoint."
+                  : "The API endpoint (e.g. http://localhost:11434/v1)."}</span
+              >
+            </div>
+            <div class="setting-control">
+              <Input
+                bind:value={config.baseUrl}
+                placeholder={activeProvider === "ollama"
+                  ? "http://localhost:11434"
+                  : "https://api.example.com/v1"}
+                class="large-input"
+                onchange={() => uiState.fetchModels(activeProvider)}
+              />
+            </div>
+          </div>
+        {/if}
+
+        {#if config.authMethod === "oauth"}
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="label">Client ID</span>
+              <span class="desc">The application client ID for OAuth.</span>
+            </div>
+            <div class="setting-control">
+              <Input
+                placeholder="Coming soon..."
+                disabled={true}
+                class="large-input"
+              />
+            </div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="label">Client Secret</span>
+              <span class="desc">The application client secret.</span>
+            </div>
+            <div class="setting-control">
+              <Input
+                type="password"
+                placeholder="Coming soon..."
+                disabled={true}
+                class="large-input"
+              />
+            </div>
+          </div>
+        {/if}
+
+        {#if config.authMethod === "apiKey" && activeProvider !== "ollama"}
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="label">API Key</span>
+              <span class="desc"
+                >Your personal API key for {activeProvider.toUpperCase()}.</span
+              >
+            </div>
+            <div class="setting-control">
+              <Input
+                type="password"
+                bind:value={config.apiKey}
+                placeholder={activeProvider === "custom"
+                  ? "Optional"
+                  : "sk-..."}
+                class="large-input"
+                onchange={() => uiState.fetchModels(activeProvider)}
+              />
+            </div>
+          </div>
+        {/if}
+
+        {#if activeProvider === "openai"}
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="label">Organization ID</span>
+              <span class="desc">Optional OpenAI Organization ID.</span>
+            </div>
+            <div class="setting-control">
+              <Input
+                bind:value={config.orgId}
+                placeholder="org-..."
+                class="large-input"
+              />
+            </div>
+          </div>
+        {/if}
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="label">Model</span>
+            <span class="desc">Select the specific model architecture.</span>
+          </div>
+          <div class="setting-control">
+            <div class="model-select-wrapper full-width">
+              <Select
+                class="ai-select full-width"
+                searchable={true}
+                placeholder={uiState.isFetchingModels
+                  ? "Fetching models..."
+                  : "Enter API key to load models..."}
+                options={uiState.availableModels[activeProvider]?.map((m) => ({
+                  value: m.id,
+                  label: m.isFree ? `${m.label} (Free Tier)` : m.label,
+                })) || []}
+                bind:value={config.model}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="label">Instructions</span>
+            <span class="desc"
+              >Custom instructions for generating commit messages.</span
+            >
+          </div>
+          <div class="setting-control flex-col align-end">
+            <textarea
+              class="custom-textarea"
+              bind:value={uiState.aiSettings.instructions}
+              placeholder="e.g. Use conventional commits format..."
+            ></textarea>
+          </div>
+        </div>
+      </div>
+    {/if}
+
     {#if !searchQuery || "Accessibility"
         .toLowerCase()
         .includes(searchQuery.toLowerCase())}
@@ -456,6 +701,67 @@
   }
 
   :global(.large-input) {
-    width: 300px !important;
+    width: 260px !important;
+    height: 30px !important;
+    box-sizing: border-box !important;
+  }
+
+  :global(.ai-select) {
+    min-width: 260px !important;
+  }
+
+  .model-select-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 260px;
+  }
+
+  .model-select-wrapper.full-width {
+    width: 260px;
+  }
+
+  :global(.ai-select.full-width) {
+    min-width: 260px !important;
+  }
+
+  :global(.spin) {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .custom-textarea {
+    width: 260px;
+    height: 100px;
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    color: var(--fg-primary);
+    padding: 8px;
+    font-size: 12px;
+    resize: vertical;
+    outline: none;
+  }
+
+  .custom-textarea:focus {
+    border-color: var(--accent-primary);
+  }
+
+  .flex-col {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .align-end {
+    align-items: flex-end;
   }
 </style>

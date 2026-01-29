@@ -1,4 +1,5 @@
 pub mod assets;
+pub mod config;
 pub mod env_check;
 pub mod git;
 pub mod mobile;

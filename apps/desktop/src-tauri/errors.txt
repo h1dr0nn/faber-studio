@@ -1,0 +1,54 @@
+cargo :     Checking app 
+v0.1.0 (D:\Game Projects\Repo
+sitories\faber-studio\apps\de
+sktop\src-tauri)
+At line:1 char:1
++ cargo check --color never 
+2>&1 | Out-File -Encoding 
+ascii errors.txt
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~
+    + CategoryInfo           
+   : NotSpecified: (    Che  
+  cking ap...ktop\src-taur   
+ i):String) [], RemoteExc    
+eption
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+error[E0599]: no variant or 
+associated item named 
+`RGBA8` found for enum 
+`PixelFormat` in the current 
+scope
+  --> 
+src\commands\assets.rs:78:63
+   |
+78 |         let image = icns
+::Image::from_data(icns::Pixe
+lFormat::RGBA8, size, size, 
+rgba.into_raw())
+   |                         
+                             
+         ^^^^^ variant or 
+associated item not found in 
+`PixelFormat`
+   |
+help: there is a variant 
+with a similar name
+   |
+78 -         let image = icns
+::Image::from_data(icns::Pixe
+lFormat::RGBA8, size, size, 
+rgba.into_raw())
+78 +         let image = icns
+::Image::from_data(icns::Pixe
+lFormat::RGBA
+   |
+
+For more information about 
+this error, try `rustc 
+--explain E0599`.
+error: could not compile 
+`app` (lib) due to 1 
+previous error

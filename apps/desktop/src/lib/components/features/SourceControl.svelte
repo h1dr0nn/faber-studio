@@ -8,6 +8,8 @@
     Minus,
     Undo2,
     CheckCheck,
+    Sparkles,
+    Loader2,
   } from "lucide-svelte";
   import Input from "$lib/components/ui/Input.svelte";
   import Button from "$lib/components/ui/Button.svelte";
@@ -46,6 +48,21 @@
       <span>SOURCE CONTROL</span>
       <div class="actions">
         <button
+          class="icon-btn ai-action-btn"
+          title="Generate commit message with AI"
+          onclick={async () => {
+            const msg = await uiState.generateCommitMessage();
+            if (msg) commitMessage = msg;
+          }}
+          disabled={uiState.isGeneratingCommitMessage}
+        >
+          {#if uiState.isGeneratingCommitMessage}
+            <Loader2 size={14} class="spin" />
+          {:else}
+            <Sparkles size={14} />
+          {/if}
+        </button>
+        <button
           class="icon-btn"
           title="Refresh"
           onclick={() => uiState.refreshGitStatus()}
@@ -63,18 +80,25 @@
     </div>
 
     <div class="commit-box">
-      <Input
-        placeholder="Message (Ctrl+Enter to commit on 'main')"
-        bind:value={commitMessage}
-        onkeydown={(e) => {
-          if ((e.ctrlKey || e.metaKey) && e.key === "Enter") handleCommit();
-        }}
-      />
+      <div class="input-relative">
+        <textarea
+          class="scm-textarea"
+          placeholder="Message (Ctrl+Enter to commit on 'main')"
+          bind:value={commitMessage}
+          onkeydown={(e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+              e.preventDefault();
+              handleCommit();
+            }
+          }}
+        ></textarea>
+      </div>
       <div class="primary-action">
         <Button
           variant="primary"
           size="sm"
           class="w-full"
+          disabled={!commitMessage}
           onclick={handleCommit}>Commit</Button
         >
       </div>
@@ -220,10 +244,56 @@
     color: var(--fg-secondary);
   }
 
-  .commit-box {
+  .input-relative {
+    position: relative;
     display: flex;
-    flex-direction: column;
-    gap: 8px;
+    align-items: center;
+    width: 100%;
+  }
+
+  .scm-textarea {
+    width: 100%;
+    min-height: 70px;
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    color: var(--fg-primary);
+    padding: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    resize: vertical;
+    outline: none;
+    line-height: 1.4;
+  }
+
+  .scm-textarea:focus {
+    border-color: var(--accent-primary);
+  }
+
+  .scm-textarea::placeholder {
+    color: var(--fg-tertiary);
+    opacity: 0.6;
+  }
+
+  .ai-action-btn {
+    color: var(--accent-primary) !important;
+  }
+
+  :global(.spin) {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .primary-action {
+    margin-top: 8px;
   }
 
   :global(.w-full) {

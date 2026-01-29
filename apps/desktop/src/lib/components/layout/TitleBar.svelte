@@ -41,11 +41,14 @@
       .catch((e: any) => console.error("Failed to minimize", e));
   }
 
-  function toggleMaximize() {
-    console.log("Toggling maximize...");
-    appWindow
-      ?.toggleMaximize()
-      .catch((e: any) => console.error("Failed to maximize", e));
+  async function toggleMaximize() {
+    if (!appWindow) return;
+    const maximized = await appWindow.isMaximized();
+    if (maximized) {
+      await appWindow.unmaximize();
+    } else {
+      await appWindow.maximize();
+    }
   }
 
   function close() {
@@ -132,7 +135,7 @@
   });
 </script>
 
-<header class="title-bar" onmousedown={startDrag}>
+<header class="title-bar" data-tauri-drag-region role="presentation">
   <div class="left-section">
     <div class="app-icon">
       <div class="icon-placeholder"></div>
@@ -185,9 +188,8 @@
     </nav>
   </div>
 
-  <div class="center-section">
-    <!-- Clean center section as requested -->
-    <span class="app-title">Faber Studio</span>
+  <div class="center-section" data-tauri-drag-region>
+    <span class="app-title" data-tauri-drag-region>Faber Studio</span>
   </div>
 
   <div class="right-section">

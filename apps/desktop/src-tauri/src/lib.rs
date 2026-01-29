@@ -15,12 +15,17 @@ pub fn run() {
             commands::project_init::write_file,
             commands::runner::run_command,
             commands::assets::get_assets,
+            commands::assets::generate_icons,
+            commands::assets::find_icons_dir,
             commands::mobile::get_devices,
             commands::search::search_in_files,
             commands::git::git_status,
             commands::git::git_stage,
             commands::git::git_unstage,
             commands::git::git_commit,
+            commands::git::git_diff_staged,
+            commands::config::save_config,
+            commands::config::load_config,
         ])
         .setup(|app| {
             if cfg!(debug_assertions) {

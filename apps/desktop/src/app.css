@@ -47,6 +47,176 @@
   --text-base: 14px;
 }
 
+[data-theme="light"] {
+  /* FABER STUDIO - LIGHT THEME (Refined - Soft) */
+  /* Backgrounds */
+  --bg-app: #f0f0f0; /* Slightly darker than before */
+  --bg-title-bar: #e7e7e7;
+  --bg-activity-bar: #f0f0f0;
+  --bg-sidebar: #f0f0f0;
+  --bg-editor: #ffffff; /* Keep editor white for readability, but surrounding is darker */
+  --bg-panel: #f0f0f0;
+  --bg-status-bar: #007acc;
+  --bg-status-bar-remote: #16825d;
+
+  --bg-input: #ffffff;
+  --bg-hover: #e4e4e4;
+  --bg-active: #d6ebff;
+  --bg-selection: #add6ff;
+
+  /* Foreground / Text */
+  --fg-primary: #3b3b3b;
+  --fg-secondary: #6e6e6e;
+  --fg-on-accent: #ffffff;
+
+  /* Accents & States */
+  --accent-primary: #007acc;
+  --accent-focus-border: #0098ff;
+  --accent-success: #3ad900;
+  --accent-warning: #bf8803;
+  --accent-error: #e51400;
+  --border-subtle: #e4e4e4;
+  
+  --border-contrast: #d4d4d4;
+
+  /* Tabs */
+  --tab-active-bg: #ffffff;
+  --tab-inactive-bg: #e4e4e4;
+  --tab-border: #e4e4e4;
+}
+
+[data-theme="midnight"] {
+  /* MIDNIGHT PRO (Dracula Inspired) */
+  --bg-app: #282a36;
+  --bg-title-bar: #21222c;
+  --bg-activity-bar: #282a36;
+  --bg-sidebar: #21222c;
+  --bg-editor: #282a36;
+  --bg-panel: #21222c;
+  --bg-status-bar: #bd93f9; /* Dracula Purple */
+  --bg-status-bar-remote: #ff79c6;
+
+  --bg-input: #44475a;
+  --bg-hover: #44475a;
+  --bg-active: #6272a4;
+  --bg-selection: #44475a;
+
+  --fg-primary: #f8f8f2;
+  --fg-secondary: #bdc3c7; /* Lighter grey-blue for better visibility */
+  --fg-on-accent: #282a36;
+
+  --accent-primary: #bd93f9;
+  --accent-focus-border: #bd93f9;
+  --accent-success: #50fa7b;
+  --accent-warning: #f1fa8c;
+  --accent-error: #ff5555;
+  --border-subtle: #44475a;
+  --border-contrast: #191a21;
+
+  --tab-active-bg: #282a36;
+  --tab-inactive-bg: #21222c;
+  --tab-border: #44475a;
+}
+
+[data-theme="iceberg"] {
+  /* ARCTIC ICE (Nord Inspired) */
+  --bg-app: #2e3440;
+  --bg-title-bar: #242933;
+  --bg-activity-bar: #2e3440;
+  --bg-sidebar: #2e3440;
+  --bg-editor: #2e3440;
+  --bg-panel: #242933;
+  --bg-status-bar: #88c0d0; /* Nord Frost */
+  --bg-status-bar-remote: #a3be8c;
+
+  --bg-input: #3b4252;
+  --bg-hover: #3b4252;
+  --bg-active: #434c5e;
+  --bg-selection: #434c5e;
+
+  --fg-primary: #d8dee9;
+  --fg-secondary: #9099ac; /* Specifically lightened for visibility on dark bg */
+  --fg-on-accent: #2e3440;
+
+  --accent-primary: #88c0d0;
+  --accent-focus-border: #8fbcbb;
+  --accent-success: #a3be8c;
+  --accent-warning: #ebcb8b;
+  --accent-error: #bf616a;
+  --border-subtle: #3b4252;
+  --border-contrast: #242933;
+
+  --tab-active-bg: #2e3440;
+  --tab-inactive-bg: #242933;
+  --tab-border: #3b4252;
+}
+
+[data-theme="solar-light"] {
+  /* SOLAR FLARE (Solarized Light Inspired) */
+  --bg-app: #fdf6e3;
+  --bg-title-bar: #eee8d5;
+  --bg-activity-bar: #eee8d5;
+  --bg-sidebar: #eee8d5;
+  --bg-editor: #fdf6e3;
+  --bg-panel: #eee8d5;
+  --bg-status-bar: #d33682; /* Magenta, or use Blue #268bd2 */
+  --bg-status-bar-remote: #6c71c4;
+
+  --bg-input: #fdf6e3;
+  --bg-hover: #e0dcd1;
+  --bg-active: #d6d1c2;
+  --bg-selection: #eee8d5;
+
+  --fg-primary: #586e75; /* Base01 */
+  --fg-secondary: #93a1a1; /* Base1 */
+  --fg-on-accent: #fdf6e3;
+
+  --accent-primary: #268bd2;
+  --accent-focus-border: #268bd2;
+  --accent-success: #859900;
+  --accent-warning: #b58900;
+  --accent-error: #dc322f;
+  --border-subtle: #d6d1c2;
+  --border-contrast: #93a1a1;
+
+  --tab-active-bg: #fdf6e3;
+  --tab-inactive-bg: #eee8d5;
+  --tab-border: #d6d1c2;
+}
+
+[data-theme="monolith"] {
+  /* MONOLITH (Monokai Inspired) */
+  --bg-app: #272822; /* Monokai Background */
+  --bg-title-bar: #1e1f1c; /* Slightly darker */
+  --bg-activity-bar: #272822;
+  --bg-sidebar: #1e1f1c;
+  --bg-editor: #272822;
+  --bg-panel: #1e1f1c;
+  --bg-status-bar: #f92672; /* Monokai Pink */
+  --bg-status-bar-remote: #a6e22e;
+
+  --bg-input: #3e3d32;
+  --bg-hover: #3e3d32;
+  --bg-active: #49483e;
+  --bg-selection: #49483e;
+
+  --fg-primary: #f8f8f2;
+  --fg-secondary: #75715e;
+  --fg-on-accent: #f8f8f2;
+
+  --accent-primary: #f92672;
+  --accent-focus-border: #f92672;
+  --accent-success: #a6e22e;
+  --accent-warning: #fd971f;
+  --accent-error: #f92672;
+  --border-subtle: #3e3d32;
+  --border-contrast: #171814;
+
+  --tab-active-bg: #272822;
+  --tab-inactive-bg: #1e1f1c;
+  --tab-border: #3e3d32;
+}
+
 /* Reset & Base */
 *,
 *::before,

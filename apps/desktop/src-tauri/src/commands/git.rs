@@ -121,3 +121,14 @@ pub async fn git_discard_changes(path: String, file: String) -> AppResult<()> {
         .output()?;
     Ok(())
 }
+
+#[tauri::command]
+pub async fn git_branch(path: String) -> AppResult<String> {
+    let output = Command::new("git")
+        .args(&["rev-parse", "--abbrev-ref", "HEAD"])
+        .current_dir(path)
+        .output()?;
+        
+    let branch = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    Ok(branch)
+}

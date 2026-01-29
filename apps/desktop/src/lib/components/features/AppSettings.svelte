@@ -18,6 +18,7 @@
   import Switch from "$lib/components/ui/Switch.svelte";
   import Select from "$lib/components/ui/Select.svelte";
   import { onMount } from "svelte";
+  import { preferences } from "$lib/stores/preferences.svelte";
 
   $effect(() => {
     // Auto-fetch models when provider changes or API key is loaded/hydrated
@@ -336,9 +337,14 @@
               options={[
                 { value: "dark", label: "Dark Modern" },
                 { value: "light", label: "Light Modern" },
+                { value: "midnight", label: "Midnight Pro" },
+                { value: "iceberg", label: "Arctic Ice" },
+                { value: "solar-light", label: "Solar Flare" },
+                { value: "monolith", label: "Monolith" },
               ]}
-              bind:value={settings.theme}
+              bind:value={preferences.theme}
               class="ai-select"
+              onchange={() => preferences.save()}
             />
           </div>
         </div>

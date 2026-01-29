@@ -4,6 +4,8 @@
     Box as BoxIcon,
     Activity as ActivityIcon,
     Smartphone as SmartphoneIcon,
+    MessageSquare as MessageSquareIcon,
+    Download as DownloadIcon,
   } from "lucide-svelte";
   import { uiState } from "$lib/ui-state.svelte";
 
@@ -12,6 +14,8 @@
     { id: "init", icon: BoxIcon, label: "Initialize" },
     { id: "assets", icon: ActivityIcon, label: "Assets" },
     { id: "mobile", icon: SmartphoneIcon, label: "Mobile" },
+    { id: "clone", icon: DownloadIcon, label: "Clone" },
+    { id: "chat", icon: MessageSquareIcon, label: "AI Chat" },
   ];
 
   function toggleTool(id: string) {

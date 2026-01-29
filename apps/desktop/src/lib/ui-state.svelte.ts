@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
+import { appConsole } from "./stores/console.svelte";
 
 export function createUIState() {
   // --- Persistent State Variables ---
@@ -47,10 +48,19 @@ export function createUIState() {
   let fileTree = $state<any>(null);
   let searchResults = $state<any[]>([]);
   let gitChanges = $state<{ staged: any[]; unstaged: any[] }>({ staged: [], unstaged: [] });
+  let gitBranch = $state("main");
   let activeTaskId = $state<string | null>(null);
   let _availableModels = $state<Record<string, { id: string; label: string; description?: string; isFree?: boolean }[]>>({});
   let _isFetchingModels = $state(false);
   let _isGeneratingCommitMessage = $state(false);
+  let _isCloning = $state(false);
+  let _cloningProgress = $state("");
+  let chatMessages = $state<{ role: "user" | "assistant"; content: string }[]>([]);
+  let isContinuousChat = $state(true);
+  let _isSendingChat = $state(false);
+  
+  let cursorPosition = $state({ ln: 1, col: 1 });
+  let editorTelemetry = $state({ language: "Plain Text", encoding: "UTF-8" });
 
   // --- Persistence Logic ---
   async function saveConfig(key: string, value: any) {
@@ -77,6 +87,13 @@ export function createUIState() {
     });
   }
 
+  function saveChat() {
+    saveConfig("chat_data", {
+      chatMessages,
+      isContinuousChat
+    });
+  }
+
   return {
     async init() {
       try {
@@ -98,17 +115,36 @@ export function createUIState() {
         const ai = await invoke("load_config", { key: "ai_settings" }) as any;
         if (ai) aiSettings = { ...aiSettings, ...ai };
 
-        const root = await invoke("load_config", { key: "project_root" }) as string | null;
-        if (root) this.setProjectRoot(root);
+        // const root = await invoke("load_config", { key: "project_root" }) as string | null;
+        // if (root) this.setProjectRoot(root);
 
         const recent = await invoke("load_config", { key: "recent_projects" }) as string[] | null;
         if (recent) recentProjects = recent;
 
         const tabs = await invoke("load_config", { key: "open_tabs" }) as any[];
-        if (tabs) openTabs = tabs;
+        if (tabs) {
+          openTabs = await Promise.all(tabs.map(async (t) => {
+            if (t.type === "file" && t.path) {
+              try {
+                const content = await invoke("read_file", { path: t.path }) as string;
+                return { ...t, content };
+              } catch (err) {
+                console.error(`Failed to reload content for ${t.path}:`, err);
+                return { ...t, content: "" };
+              }
+            }
+            return t;
+          }));
+        }
 
         const activeTab = await invoke("load_config", { key: "active_tab_id" }) as string | null;
         if (activeTab) activeTabId = activeTab;
+
+        const chat = await invoke("load_config", { key: "chat_data" }) as any;
+        if (chat) {
+          chatMessages = chat.chatMessages || [];
+          isContinuousChat = chat.isContinuousChat ?? true;
+        }
 
       } catch (err) {
         console.error("Failed to hydrate UI state from Rust:", err);
@@ -125,7 +161,7 @@ export function createUIState() {
     set activeRightActivityId(value: string) {
       activeRightActivityId = value;
       const titles: Record<string, string> = {
-        'init': 'INITIALIZE', 'doctor': 'DOCTOR', 'assets': 'ASSET MANAGER', 'mobile': 'MOBILE SETUP'
+        'init': 'INITIALIZE', 'doctor': 'DOCTOR', 'assets': 'ASSET MANAGER', 'mobile': 'MOBILE SETUP', 'clone': 'CLONE REPOSITORY', 'chat': 'AI CHAT'
       };
       activeRightSidePanelTitle = titles[value] || value.toUpperCase();
       saveUIState();
@@ -281,7 +317,15 @@ export function createUIState() {
     get gitChanges() { return gitChanges; },
     async refreshGitStatus() {
       if (!projectRoot) return;
-      try { gitChanges = await invoke("git_status", { path: projectRoot }) as any; } catch (err) { console.error(err); }
+      try { 
+        gitChanges = await invoke("git_status", { path: projectRoot }) as any; 
+        await this.refreshGitBranch();
+      } catch (err) { console.error(err); }
+    },
+    get gitBranch() { return gitBranch; },
+    async refreshGitBranch() {
+      if (!projectRoot) return;
+      try { gitBranch = await invoke("git_branch", { path: projectRoot }) as string; } catch (err) { console.error(err); }
     },
     async stageFile(file: string) {
       if (!projectRoot) return;
@@ -401,12 +445,135 @@ export function createUIState() {
       saveConfig("ai_settings", aiSettings);
     },
 
+    get isCloning() { return _isCloning; },
+    get cloningProgress() { return _cloningProgress; },
+    async cloneRepository(url: string, parentDir: string) {
+      if (_isCloning) return;
+      _isCloning = true;
+      _cloningProgress = "Cloning repository...";
+      try {
+        const repoName = url.split('/').pop()?.replace('.git', '') || 'repository';
+        const targetPath = `${parentDir}/${repoName}`;
+        await invoke("git_clone", { url, path: targetPath });
+        await this.setProjectRoot(targetPath);
+        _cloningProgress = "Successfully cloned!";
+      } catch (err: any) {
+        console.error("Failed to clone repository:", err);
+        _cloningProgress = `Error: ${err.message || err}`;
+        throw err;
+      } finally {
+        _isCloning = false;
+      }
+    },
+
     get availableModels() { return _availableModels; },
     get isFetchingModels() { return _isFetchingModels; },
     get activeTaskId() { return activeTaskId; },
     async runTask(command: string, args: string[] = []) {
       if (!projectRoot) return;
       try { const taskId = await invoke("run_command", { command, args, cwd: projectRoot }); activeTaskId = taskId as string; activeActivityId = "matrix"; } catch (err) { console.error(err); }
+    },
+
+    get chatMessages() { return chatMessages; },
+    get isContinuousChat() { return isContinuousChat; },
+    set isContinuousChat(value: boolean) { 
+      isContinuousChat = value; 
+      saveChat();
+    },
+    get isSendingChat() { return _isSendingChat; },
+    clearChat() { 
+      chatMessages = []; 
+      saveChat();
+    },
+    async sendChatMessage(content: string) {
+      if (!content.trim() || _isSendingChat) return;
+      
+      const userMessage = { role: "user" as const, content };
+      chatMessages.push(userMessage);
+      _isSendingChat = true;
+
+      try {
+        const { activeProvider, providers } = aiSettings;
+        const config = providers[activeProvider];
+        if (!config.apiKey && activeProvider !== 'custom') {
+           chatMessages.push({ role: "assistant", content: "Please configure API Key in Settings." });
+           return;
+        }
+
+        const history = isContinuousChat ? chatMessages : [userMessage];
+        const instructions = "You are a helpful AI assistant integrated into Faber Studio, an agentic IDE.";
+        
+        let res = "";
+        if (activeProvider === 'gemini') {
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/${config.model}:generateContent?key=${config.apiKey}`;
+          const contents = history.map(m => ({
+            role: m.role === "user" ? "user" : "model",
+            parts: [{ text: m.content }]
+          }));
+          const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents, systemInstruction: { parts: [{ text: instructions }] } }) });
+          const data = await response.json();
+          res = data.candidates?.[0]?.content?.parts?.[0]?.text || "No response from Gemini.";
+        } else if (activeProvider === 'anthropic') {
+           const response = await fetch("https://api.anthropic.com/v1/messages", { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': config.apiKey, 'anthropic-version': '2023-06-01', 'dangerously-allow-browser': 'true' }, body: JSON.stringify({ model: config.model, max_tokens: 1024, messages: history, system: instructions }) });
+           const data = await response.json();
+           res = data.content?.[0]?.text || "No response from Anthropic.";
+        } else {
+          let baseUrl = "https://api.openai.com/v1/chat/completions";
+          // Mapping other providers (simplified for now, reusing logic from generateCommitMessage)
+          if (activeProvider === 'grok') baseUrl = "https://api.x.ai/v1/chat/completions";
+          else if (activeProvider === 'deepseek') baseUrl = "https://api.deepseek.com/v1/chat/completions";
+          else if (activeProvider === 'ollama') baseUrl = `${config.baseUrl}/v1/chat/completions`;
+          
+          const headers: Record<string, string> = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.apiKey}` };
+          const response = await fetch(baseUrl, { method: 'POST', headers, body: JSON.stringify({ model: config.model, messages: [{ role: "system", content: instructions }, ...history] }) });
+          const data = await response.json();
+          res = data.choices?.[0]?.message?.content || "No response from provider.";
+        }
+
+        chatMessages.push({ role: "assistant", content: res });
+        saveChat();
+      } catch (err: any) {
+        console.error("Chat error:", err);
+        chatMessages.push({ role: "assistant", content: `Error: ${err.message || err}` });
+      } finally {
+        _isSendingChat = false;
+      }
+    },
+
+    get cursorPosition() { return cursorPosition; },
+    set cursorPosition(value: { ln: number; col: number }) { cursorPosition = value; },
+    updateCursor(textarea: HTMLTextAreaElement) {
+      const text = textarea.value.substring(0, textarea.selectionStart);
+      const lines = text.split("\n");
+      cursorPosition = {
+        ln: lines.length,
+        col: lines[lines.length - 1].length + 1
+      };
+    },
+    get editorTelemetry() { return editorTelemetry; },
+    setEditorTelemetry(language: string, encoding: string = "UTF-8") {
+      editorTelemetry = { language, encoding };
+    },
+    formatActiveFile() {
+      const index = openTabs.findIndex(t => t.id === activeTabId);
+      if (index !== -1 && openTabs[index].type === "file") {
+        const tab = openTabs[index];
+        // More visible formatting: trim lines, remove multiple newlines, add final newline
+        const originalContent = tab.content;
+        const formatted = tab.content
+          .split("\n")
+          .map(l => l.trimEnd())
+          .join("\n")
+          .replace(/\n{3,}/g, "\n\n")
+          .trim() + "\n";
+        
+        if (originalContent !== formatted) {
+          openTabs[index].content = formatted;
+          appConsole.success(`Formatted ${tab.label}`, "Prettier");
+        } else {
+          appConsole.info(`File ${tab.label} is already formatted`, "Prettier");
+        }
+      }
     }
   };
 }

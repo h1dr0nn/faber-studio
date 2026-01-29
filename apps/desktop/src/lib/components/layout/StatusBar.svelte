@@ -8,10 +8,18 @@
   } from "lucide-svelte";
   import { uiState } from "$lib/ui-state.svelte";
 
-  let branch = "main";
   let errors = 0;
   let warnings = 2;
-  let isSyncing = false;
+  let isSyncing = $state(false);
+
+  async function handleRefresh() {
+    isSyncing = true;
+    try {
+      await uiState.refreshGitStatus();
+    } finally {
+      isSyncing = false;
+    }
+  }
 </script>
 
 <footer class="status-bar">
@@ -24,12 +32,9 @@
       onclick={() => (uiState.activeActivityId = "git")}
     >
       <GitBranch size={12} />
-      <span class="label">{branch}</span>
+      <span class="label">{uiState.gitBranch}</span>
     </button>
-    <button
-      class="status-item clickable"
-      onclick={() => uiState.refreshGitStatus()}
-    >
+    <button class="status-item clickable" onclick={handleRefresh}>
       <RefreshCw size={12} class={isSyncing ? "spin" : ""} />
     </button>
     <button
@@ -48,18 +53,23 @@
 
   <div class="right-items">
     <div class="status-item">
-      <span class="label">Ln 12, Col 34</span>
+      <span class="label"
+        >Ln {uiState.cursorPosition.ln}, Col {uiState.cursorPosition.col}</span
+      >
     </div>
     <div class="status-item">
-      <span class="label">UTF-8</span>
+      <span class="label">{uiState.editorTelemetry.encoding}</span>
     </div>
     <div class="status-item">
-      <span class="label">TypeScript React</span>
+      <span class="label">{uiState.editorTelemetry.language}</span>
     </div>
-    <div class="status-item clickable">
+    <button
+      class="status-item clickable"
+      onclick={() => uiState.formatActiveFile()}
+    >
       <Check size={12} />
       <span class="label">Prettier</span>
-    </div>
+    </button>
   </div>
 </footer>
 
@@ -89,6 +99,11 @@
     cursor: default;
     gap: 4px;
     opacity: 0.9;
+    background: transparent;
+    border: none;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
   }
 
   .status-item.clickable:hover {
@@ -110,10 +125,6 @@
 
   .error-stat .label {
     margin-right: 6px;
-  }
-
-  .spin {
-    animation: spin 2s linear infinite;
   }
 
   @keyframes spin {

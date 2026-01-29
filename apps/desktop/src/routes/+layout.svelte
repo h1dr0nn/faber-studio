@@ -25,6 +25,7 @@
     Stethoscope as StethoscopeIcon,
   } from "lucide-svelte";
   import { uiState } from "$lib/ui-state.svelte";
+  import { preferences } from "$lib/stores/preferences.svelte";
   import { appConsole } from "$lib/stores/console.svelte";
   import { onMount } from "svelte";
 
@@ -37,13 +38,49 @@
   import SourceControl from "$lib/components/features/SourceControl.svelte";
   import RunAndDebug from "$lib/components/features/RunAndDebug.svelte";
   import AppSettings from "$lib/components/features/AppSettings.svelte";
+  import CloneRepo from "$lib/components/features/CloneRepo.svelte";
+  import Chat from "$lib/components/features/Chat.svelte";
   import ContextMenu from "$lib/components/ui/ContextMenu.svelte";
+  import Editor from "$lib/components/features/Editor.svelte";
 
   let { children } = $props();
   let activeTab = $state("page");
 
   onMount(() => {
     uiState.init();
+  });
+
+  $effect(() => {
+    document.documentElement.setAttribute("data-theme", preferences.theme);
+  });
+
+  $effect(() => {
+    if (uiState.activeTabId) {
+      const activeTab = uiState.openTabs.find(
+        (t) => t.id === uiState.activeTabId,
+      );
+      if (activeTab && activeTab.path) {
+        const ext = activeTab.path.split(".").pop()?.toLowerCase();
+        let lang = "Plain Text";
+        const map: Record<string, string> = {
+          js: "JavaScript",
+          ts: "TypeScript",
+          svelte: "Svelte",
+          rs: "Rust",
+          json: "JSON",
+          css: "CSS",
+          html: "HTML",
+          md: "Markdown",
+          py: "Python",
+          go: "Go",
+          cpp: "C++",
+          c: "C",
+          sql: "SQL",
+        };
+        lang = map[ext || ""] || "Plain Text";
+        uiState.setEditorTelemetry(lang);
+      }
+    }
   });
 </script>
 
@@ -147,6 +184,7 @@
                       depth={0}
                       selected={tab.id === uiState.activeTabId}
                       onclick={() => (uiState.activeTabId = tab.id)}
+                      onclose={() => uiState.closeTab(tab.id)}
                       oncontextmenu={(e: MouseEvent) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -203,6 +241,23 @@
                         class="open-btn"
                         onclick={() => uiState.openFolder()}>Open Folder</button
                       >
+
+                      {#if uiState.recentProjects.length > 0}
+                        <div class="recent-projects">
+                          <span class="recent-title">Recent</span>
+                          {#each uiState.recentProjects as project}
+                            <button
+                              class="recent-item"
+                              onclick={() => uiState.setProjectRoot(project)}
+                            >
+                              <span class="recent-name"
+                                >{project.split(/[\\/]/).pop()}</span
+                              >
+                              <span class="recent-path">{project}</span>
+                            </button>
+                          {/each}
+                        </div>
+                      {/if}
                     </div>
                   {/if}
                 </div>
@@ -335,17 +390,7 @@
               {#if tab.id === uiState.activeTabId}
                 {#if tab.type === "file"}
                   <div class="code-editor">
-                    <textarea
-                      class="editor-textarea"
-                      bind:value={tab.content}
-                      onkeydown={(e) => {
-                        if (e.ctrlKey && e.key === "s") {
-                          e.preventDefault();
-                          uiState.saveActiveFile();
-                        }
-                      }}
-                      spellcheck="false"
-                    ></textarea>
+                    <Editor {tab} />
                   </div>
                 {:else if tab.type === "settings"}
                   <AppSettings />
@@ -501,6 +546,10 @@
               <AssetManager />
             {:else if uiState.activeRightActivityId === "mobile"}
               <MobileSetup />
+            {:else if uiState.activeRightActivityId === "clone"}
+              <CloneRepo />
+            {:else if uiState.activeRightActivityId === "chat"}
+              <Chat />
             {/if}
           </div>
         </SidePanel>
@@ -586,48 +635,60 @@
     filter: brightness(1.1);
   }
 
-  .code-editor {
-    height: 100%;
+  .recent-projects {
+    margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: left;
     width: 100%;
-    background-color: var(--bg-app);
-    overflow: hidden; /* Hide container scroll, use textarea scroll */
-    font-family: "JetBrains Mono", "Fira Code", monospace;
-    font-size: 14px;
-    line-height: 1.5;
   }
 
-  .editor-textarea {
-    width: 100%;
-    height: 100%;
+  .recent-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--fg-secondary);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    padding-left: 8px;
+  }
+
+  .recent-item {
+    display: flex;
+    flex-direction: column;
     background: transparent;
     border: none;
+    padding: 6px 8px;
+    cursor: pointer;
+    text-align: left;
+    border-radius: 4px;
     color: var(--fg-primary);
-    padding: 20px;
-    resize: none;
-    outline: none;
-    font-family: inherit;
-    font-size: inherit;
-    line-height: inherit;
-    tab-size: 4;
-    white-space: pre;
-    overflow: auto;
   }
 
-  /* Custom scrollbar for editor */
-  .editor-textarea::-webkit-scrollbar {
-    width: 12px;
-    height: 12px;
+  .recent-item:hover {
+    background-color: var(--bg-hover);
   }
 
-  .editor-textarea::-webkit-scrollbar-thumb {
-    background-color: var(--bg-active);
-    border: 3px solid transparent;
-    background-clip: content-box;
-    border-radius: 10px;
+  .recent-name {
+    font-size: 13px;
+    color: var(--accent-primary);
   }
 
-  .editor-textarea::-webkit-scrollbar-corner {
-    background: transparent;
+  .recent-path {
+    font-size: 11px;
+    color: var(--fg-secondary);
+    opacity: 0.7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .code-editor {
+    width: 100%;
+    height: 100%;
+    background-color: var(--bg-app);
+    overflow: hidden;
   }
 
   .editor-content {

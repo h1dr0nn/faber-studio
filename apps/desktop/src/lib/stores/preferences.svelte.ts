@@ -1,7 +1,7 @@
 // Preferences Store
 // Persists user settings to localStorage
 
-export type AppTheme = 'dark' | 'light' | 'system';
+export type AppTheme = 'dark' | 'light' | 'midnight' | 'iceberg' | 'solar-light' | 'monolith' | 'system';
 
 class PreferencesStore {
   theme = $state<AppTheme>('dark');

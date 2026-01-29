@@ -20,12 +20,21 @@
         </button>
         <button
           class="welcome-button"
-          onclick={() => (uiState.activeRightActivityId = "init")}
+          onclick={() => {
+            uiState.activeRightActivityId = "init";
+            uiState.isRightPanelVisible = true;
+          }}
         >
           <PlusSquare size={18} />
           <span>New Project...</span>
         </button>
-        <button class="welcome-button">
+        <button
+          class="welcome-button"
+          onclick={() => {
+            uiState.activeRightActivityId = "clone";
+            uiState.isRightPanelVisible = true;
+          }}
+        >
           <Github size={18} />
           <span>Clone Repository...</span>
         </button>
@@ -33,7 +42,21 @@
 
       <div class="welcome-section">
         <h3>Recent</h3>
-        <div class="recent-empty">No recent folders</div>
+        {#if uiState.recentProjects.length > 0}
+          <div class="recent-list">
+            {#each uiState.recentProjects as project}
+              <button
+                class="recent-item-row"
+                onclick={() => uiState.setProjectRoot(project)}
+              >
+                <span class="project-name">{project.split(/[\\/]/).pop()}</span>
+                <span class="project-path">{project}</span>
+              </button>
+            {/each}
+          </div>
+        {:else}
+          <div class="recent-empty">No recent folders</div>
+        {/if}
       </div>
     </div>
 
@@ -137,6 +160,44 @@
     font-size: 13px;
     color: var(--fg-tertiary);
     font-style: italic;
+  }
+
+  .recent-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .recent-item-row {
+    background: transparent;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .recent-item-row:hover {
+    background-color: var(--bg-hover);
+  }
+
+  .project-name {
+    font-size: 13px;
+    color: var(--accent-primary);
+    font-weight: 500;
+  }
+
+  .project-path {
+    font-size: 11px;
+    color: var(--fg-secondary);
+    opacity: 0.7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
   }
 
   .shortcuts-footer {

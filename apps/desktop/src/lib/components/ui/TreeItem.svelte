@@ -6,6 +6,7 @@
     File,
     Folder,
     FolderOpen,
+    X,
   } from "lucide-svelte";
 
   interface Props {
@@ -31,9 +32,10 @@
     oncontextmenu = undefined,
     isRenaming = false,
     onRename = undefined,
+    onclose = undefined,
     children,
     ...rest
-  }: Props = $props();
+  }: Props & { onclose?: () => void } = $props();
 
   function toggle() {
     if (isRenaming) return;
@@ -128,6 +130,19 @@
     {:else}
       <span class="label">{label}</span>
     {/if}
+
+    {#if onclose}
+      <button
+        class="close-btn"
+        onclick={(e) => {
+          e.stopPropagation();
+          onclose();
+        }}
+        title="Close"
+      >
+        <X size={12} />
+      </button>
+    {/if}
   </div>
 
   {#if isFolder && expanded}
@@ -189,6 +204,29 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    flex: 1;
+  }
+
+  .close-btn {
+    opacity: 0;
+    background: transparent;
+    border: none;
+    color: var(--fg-secondary);
+    padding: 2px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 4px;
+  }
+
+  .tree-row:hover .close-btn {
+    opacity: 1;
+  }
+
+  .close-btn:hover {
+    background-color: var(--bg-active);
+    color: var(--fg-primary);
   }
 
   .rename-input {

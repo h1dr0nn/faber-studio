@@ -1,0 +1,461 @@
+<script lang="ts">
+  import {
+    Palette,
+    Type,
+    Settings2,
+    Keyboard,
+    Globe,
+    Monitor,
+    ChevronRight,
+    Search,
+  } from "lucide-svelte";
+  import Input from "$lib/components/ui/Input.svelte";
+  import Switch from "$lib/components/ui/Switch.svelte";
+  import Select from "$lib/components/ui/Select.svelte";
+
+  let searchQuery = $state("");
+  let settings = $state({
+    // Editor
+    theme: "dark",
+    fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+    fontSize: 13,
+    lineHeight: 1.5,
+    tabSize: 4,
+    insertSpaces: true,
+    renderWhitespace: "none",
+    lineNumbers: true,
+    minimap: false,
+    wordWrap: "off",
+    bracketPairColorization: true,
+    guides: true,
+
+    // Files
+    autoSave: true,
+    autoSaveDelay: 1000,
+    exclude: "**/node_modules, **/target, **/.git",
+    defaultEOL: "\n",
+
+    // Terminal
+    terminalFontSize: 12,
+    terminalCursorStyle: "block",
+    terminalCursorBlinking: true,
+
+    // Performance & Telemetry
+    telemetry: false,
+    gpuAcceleration: true,
+  });
+
+  const categories = [
+    { id: "editor", label: "Text Editor", icon: Type },
+    { id: "files", label: "Files", icon: Settings2 },
+    { id: "terminal", label: "Terminal", icon: Keyboard },
+    { id: "appearance", label: "Appearance", icon: Palette },
+    { id: "accessibility", label: "Accessibility", icon: Monitor },
+  ];
+</script>
+
+<div class="feature-container">
+  <div class="settings-header">
+    <div class="search-box">
+      <div class="search-icon-wrapper">
+        <Search size={14} />
+      </div>
+      <Input
+        placeholder="Search settings"
+        bind:value={searchQuery}
+        class="with-icon"
+      />
+    </div>
+  </div>
+
+  <div class="settings-content">
+    <div class="category-list">
+      {#each categories as cat}
+        <button
+          class="category-item"
+          onclick={() => {
+            const el = document.getElementById(`settings-group-${cat.id}`);
+            if (el) {
+              el.scrollIntoView({ behavior: "smooth" });
+            }
+          }}
+        >
+          <cat.icon size={16} />
+          <span>{cat.label}</span>
+        </button>
+      {/each}
+    </div>
+
+    {#if !searchQuery || "Editor"
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) || "font size line numbers word wrap tab size bracket pair colorization".includes(searchQuery.toLowerCase())}
+      <div class="settings-group" id="settings-group-editor">
+        <span class="group-title">Editor</span>
+
+        {#if !searchQuery || "Font Family"
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())}
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="label">Font Family</span>
+              <span class="desc">Controls the font family.</span>
+            </div>
+            <div class="setting-control">
+              <Input bind:value={settings.fontFamily} class="large-input" />
+            </div>
+          </div>
+        {/if}
+
+        {#if !searchQuery || "Font Size"
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())}
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="label">Font Size</span>
+              <span class="desc">Controls the font size in pixels.</span>
+            </div>
+            <div class="setting-control">
+              <Input
+                type="number"
+                bind:value={settings.fontSize}
+                class="small-input"
+              />
+            </div>
+          </div>
+        {/if}
+
+        {#if !searchQuery || "Word Wrap"
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())}
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="label">Word Wrap</span>
+              <span class="desc">Controls how lines should wrap.</span>
+            </div>
+            <div class="setting-control">
+              <Select
+                options={[
+                  { value: "off", label: "Off" },
+                  { value: "on", label: "On" },
+                  { value: "wordWrapColumn", label: "Word Wrap Column" },
+                  { value: "bounded", label: "Bounded" },
+                ]}
+                bind:value={settings.wordWrap}
+              />
+            </div>
+          </div>
+        {/if}
+
+        {#if !searchQuery || "Line Numbers"
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())}
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="label">Line Numbers</span>
+              <span class="desc">Controls the display of line numbers.</span>
+            </div>
+            <div class="setting-control">
+              <Switch
+                bind:checked={settings.lineNumbers}
+                label="Line Numbers"
+              />
+            </div>
+          </div>
+        {/if}
+
+        {#if !searchQuery || "Tab Size"
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())}
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="label">Tab Size</span>
+              <span class="desc">The number of spaces a tab is equal to.</span>
+            </div>
+            <div class="setting-control">
+              <Input
+                type="number"
+                bind:value={settings.tabSize}
+                class="small-input"
+              />
+            </div>
+          </div>
+        {/if}
+
+        {#if !searchQuery || "Bracket Pair Colorization"
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())}
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="label">Bracket Pair Colorization</span>
+              <span class="desc"
+                >Controls whether bracket pair colorization is enabled.</span
+              >
+            </div>
+            <div class="setting-control">
+              <Switch
+                bind:checked={settings.bracketPairColorization}
+                label="Bracket Pairs"
+              />
+            </div>
+          </div>
+        {/if}
+      </div>
+    {/if}
+
+    {#if !searchQuery || "Files"
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) || "auto save exclude".includes(searchQuery.toLowerCase())}
+      <div class="settings-group" id="settings-group-files">
+        <span class="group-title">Files</span>
+
+        {#if !searchQuery || "Auto Save"
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())}
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="label">Auto Save</span>
+              <span class="desc">Automatically save dirty files.</span>
+            </div>
+            <div class="setting-control">
+              <Switch bind:checked={settings.autoSave} label="Auto Save" />
+            </div>
+          </div>
+        {/if}
+
+        {#if !searchQuery || "Exclude"
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())}
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="label">Files: Exclude</span>
+              <span class="desc"
+                >Configure glob patterns for excluding files and folders.</span
+              >
+            </div>
+            <div class="setting-control">
+              <Input bind:value={settings.exclude} class="large-input" />
+            </div>
+          </div>
+        {/if}
+      </div>
+    {/if}
+
+    {#if !searchQuery || "Terminal"
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) || "font size cursor style".includes(searchQuery.toLowerCase())}
+      <div class="settings-group" id="settings-group-terminal">
+        <span class="group-title">Terminal</span>
+
+        {#if !searchQuery || "Font Size"
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())}
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="label">Terminal: Font Size</span>
+              <span class="desc"
+                >Controls the font size in pixels of the terminal.</span
+              >
+            </div>
+            <div class="setting-control">
+              <Input
+                type="number"
+                bind:value={settings.terminalFontSize}
+                class="small-input"
+              />
+            </div>
+          </div>
+        {/if}
+
+        {#if !searchQuery || "Cursor Style"
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())}
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="label">Terminal: Cursor Style</span>
+              <span class="desc"
+                >Controls the style of the terminal cursor.</span
+              >
+            </div>
+            <div class="setting-control">
+              <Select
+                options={[
+                  { value: "block", label: "Block" },
+                  { value: "line", label: "Line" },
+                  { value: "underline", label: "Underline" },
+                ]}
+                bind:value={settings.terminalCursorStyle}
+              />
+            </div>
+          </div>
+        {/if}
+      </div>
+    {/if}
+    {#if !searchQuery || "Appearance"
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())}
+      <div class="settings-group" id="settings-group-appearance">
+        <span class="group-title">Appearance</span>
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="label">Color Theme</span>
+            <span class="desc">The theme used in the workbench.</span>
+          </div>
+          <div class="setting-control">
+            <Select
+              options={[
+                { value: "dark", label: "Dark Modern" },
+                { value: "light", label: "Light Modern" },
+              ]}
+              bind:value={settings.theme}
+            />
+          </div>
+        </div>
+      </div>
+    {/if}
+
+    {#if !searchQuery || "Accessibility"
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())}
+      <div class="settings-group" id="settings-group-accessibility">
+        <span class="group-title">Accessibility</span>
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="label">GPU Acceleration</span>
+            <span class="desc">Controls whether to use GPU acceleration.</span>
+          </div>
+          <div class="setting-control">
+            <Switch
+              bind:checked={settings.gpuAcceleration}
+              label="GPU Acceleration"
+            />
+          </div>
+        </div>
+      </div>
+    {/if}
+  </div>
+</div>
+
+<style>
+  .feature-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    color: var(--fg-secondary);
+  }
+
+  .settings-header {
+    padding: 12px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .search-icon-wrapper {
+    position: absolute;
+    left: 8px;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.5;
+    display: flex;
+  }
+
+  :global(.with-icon) {
+    padding-left: 28px !important;
+  }
+
+  .settings-content {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 50px; /* Space at bottom */
+  }
+
+  /* Custom scrollbar */
+  .settings-content::-webkit-scrollbar {
+    width: 12px;
+  }
+  .settings-content::-webkit-scrollbar-thumb {
+    background-color: var(--bg-active);
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 10px;
+  }
+
+  .category-list {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .category-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    width: 100%;
+    background: none;
+    border: none;
+    color: var(--fg-secondary);
+    cursor: pointer;
+    font-size: 13px;
+    text-align: left;
+  }
+
+  .category-item:hover {
+    background-color: var(--bg-hover);
+    color: var(--fg-primary);
+  }
+
+  .settings-group {
+    padding: 16px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .group-title {
+    padding: 0 16px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--accent-primary);
+    letter-spacing: 0.5px;
+  }
+
+  .setting-row {
+    padding: 0 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .setting-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .label {
+    font-size: 13px;
+    color: var(--fg-primary);
+  }
+
+  .desc {
+    font-size: 11px;
+    opacity: 0.6;
+    line-height: 1.4;
+  }
+
+  .setting-control {
+    display: flex;
+    align-items: center;
+  }
+
+  :global(.large-input) {
+    width: 300px !important;
+  }
+</style>

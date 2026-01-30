@@ -6,6 +6,7 @@ version = 3
 name = "Faber"
 version = "0.0.1"
 dependencies = [
+ "glob",
  "icns",
  "ico 0.3.0",
  "image",

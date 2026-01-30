@@ -3,26 +3,167 @@
   import { uiState } from "$lib/ui-state.svelte";
   import { onMount, onDestroy } from "svelte";
   import { listen } from "@tauri-apps/api/event";
+  import { invoke } from "@tauri-apps/api/core";
   import { fly } from "svelte/transition";
   import { cn } from "$lib/utils";
-  import { Play, Trash2, Terminal, Plus, X } from "lucide-svelte";
+  import {
+    Play,
+    Trash2,
+    Terminal,
+    Plus,
+    X,
+    Clock,
+    Command,
+  } from "lucide-svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import Input from "$lib/components/ui/Input.svelte";
 
-  let command = $state("pnpm run dev");
+  let command = $state("");
   let unlisten: any[] = [];
   let logContainer: HTMLElement;
+  let inputElement: HTMLInputElement;
+
+  // Suggestion system
+  let showSuggestions = $state(false);
+  let selectedIndex = $state(0);
+  let commandHistory = $state<string[]>([]);
+  let detectedPM = $state<string>("npm");
+
+  // Detect package manager when project changes
+  $effect(() => {
+    if (uiState.projectRoot) {
+      invoke("detect_package_manager", { path: uiState.projectRoot })
+        .then((pm) => {
+          detectedPM = (pm as string) || "npm";
+        })
+        .catch(() => {
+          detectedPM = "npm";
+        });
+    }
+  });
+
+  // Generate commands based on detected package manager
+  let predefinedCommands = $derived.by(() => {
+    const pm = detectedPM;
+    const pmCommands = [
+      { cmd: `${pm} run dev`, desc: "Start development server" },
+      { cmd: `${pm} run build`, desc: "Build for production" },
+      { cmd: `${pm} run tauri dev`, desc: "Run Tauri in dev mode" },
+      { cmd: `${pm} run tauri build`, desc: "Build Tauri app" },
+      { cmd: `${pm} install`, desc: "Install dependencies" },
+      { cmd: `${pm} run test`, desc: "Run tests" },
+    ];
+
+    const otherCommands = [
+      { cmd: "cargo build", desc: "Build Rust project" },
+      { cmd: "cargo run", desc: "Run Rust project" },
+      { cmd: "cargo test", desc: "Run Rust tests" },
+      { cmd: "cargo check", desc: "Check Rust project" },
+      { cmd: "git status", desc: "Show git status" },
+      { cmd: "git pull", desc: "Pull from remote" },
+      { cmd: "git push", desc: "Push to remote" },
+      { cmd: "git log --oneline -10", desc: "Show last 10 commits" },
+      { cmd: "ls", desc: "List files" },
+      { cmd: "dir", desc: "List files (Windows)" },
+      { cmd: "cd ..", desc: "Go to parent directory" },
+      { cmd: "clear", desc: "Clear terminal" },
+    ];
+
+    return [...pmCommands, ...otherCommands];
+  });
+
+  // Filtered suggestions based on input
+  let suggestions = $derived.by(() => {
+    const query = command.toLowerCase().trim();
+    if (!query) {
+      // Show history first, then some common commands
+      const historyItems = commandHistory.slice(0, 5).map((cmd) => ({
+        cmd,
+        desc: "Recent",
+        isHistory: true,
+      }));
+      const commonItems = predefinedCommands
+        .slice(0, 5 - historyItems.length)
+        .map((c) => ({
+          ...c,
+          isHistory: false,
+        }));
+      return [...historyItems, ...commonItems];
+    }
+
+    // Filter commands that match
+    const historyMatches = commandHistory
+      .filter((cmd) => cmd.toLowerCase().includes(query))
+      .slice(0, 3)
+      .map((cmd) => ({ cmd, desc: "Recent", isHistory: true }));
+
+    const predefinedMatches = predefinedCommands
+      .filter((c) => c.cmd.toLowerCase().includes(query))
+      .slice(0, 5 - historyMatches.length)
+      .map((c) => ({ ...c, isHistory: false }));
+
+    return [...historyMatches, ...predefinedMatches];
+  });
 
   function runCommand() {
     if (!command) return;
     const parts = command.trim().split(/\s+/);
     if (parts.length === 0) return;
 
+    // Add to history
+    const trimmedCmd = command.trim();
+    if (trimmedCmd && !commandHistory.includes(trimmedCmd)) {
+      commandHistory = [trimmedCmd, ...commandHistory].slice(0, 20);
+    }
+
     const cmd = parts[0];
     const args = parts.slice(1);
 
     appConsole.info(`> ${command}`, "Terminal");
     uiState.runTask(cmd, args);
+    showSuggestions = false;
+  }
+
+  function selectSuggestion(suggestion: { cmd: string }) {
+    command = suggestion.cmd;
+    showSuggestions = false;
+    inputElement?.focus();
+  }
+
+  function handleKeydown(e: KeyboardEvent) {
+    if (showSuggestions && suggestions.length > 0) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        selectedIndex = (selectedIndex + 1) % suggestions.length;
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        selectedIndex =
+          (selectedIndex - 1 + suggestions.length) % suggestions.length;
+      } else if (e.key === "Enter" && selectedIndex >= 0) {
+        e.preventDefault();
+        selectSuggestion(suggestions[selectedIndex]);
+        runCommand();
+      } else if (e.key === "Tab" && selectedIndex >= 0) {
+        e.preventDefault();
+        selectSuggestion(suggestions[selectedIndex]);
+      } else if (e.key === "Escape") {
+        showSuggestions = false;
+      }
+    } else if (e.key === "Enter") {
+      runCommand();
+    }
+  }
+
+  function handleFocus() {
+    showSuggestions = true;
+    selectedIndex = 0;
+  }
+
+  function handleBlur() {
+    // Delay to allow click on suggestion
+    setTimeout(() => {
+      showSuggestions = false;
+    }, 150);
   }
 
   function createNewSession() {
@@ -133,22 +274,43 @@
     <div class="input-row">
       <div class="input-inner">
         <Terminal size={12} class="prompt-icon" />
-        <Input
+        <input
+          type="text"
+          bind:this={inputElement}
           bind:value={command}
           placeholder="Type command here..."
-          class="cmd-input"
-          onkeydown={(e: KeyboardEvent) => e.key === "Enter" && runCommand()}
+          class="cmd-input-native"
+          onkeydown={handleKeydown}
+          onfocus={handleFocus}
+          onblur={handleBlur}
         />
+
+        {#if showSuggestions && suggestions.length > 0}
+          <div
+            class="suggestions-dropdown"
+            transition:fly={{ y: -5, duration: 100 }}
+          >
+            {#each suggestions as suggestion, i}
+              <button
+                class="suggestion-item {selectedIndex === i ? 'selected' : ''}"
+                onmousedown={() => selectSuggestion(suggestion)}
+                onmouseenter={() => (selectedIndex = i)}
+              >
+                <span class="suggestion-icon">
+                  {#if suggestion.isHistory}
+                    <Clock size={12} />
+                  {:else}
+                    <Command size={12} />
+                  {/if}
+                </span>
+                <span class="suggestion-cmd">{suggestion.cmd}</span>
+                <span class="suggestion-desc">{suggestion.desc}</span>
+              </button>
+            {/each}
+          </div>
+        {/if}
       </div>
       <div class="bar-actions">
-        <Button
-          variant="ghost"
-          size="sm"
-          onclick={() => appConsole.clear()}
-          title="Clear Console"
-        >
-          <Trash2 size={14} />
-        </Button>
         <Button variant="primary" size="sm" onclick={runCommand}>
           <Play size={12} class="mr-1" /> Run
         </Button>
@@ -167,12 +329,24 @@
 
   .console-tabs {
     display: flex;
+    flex-wrap: nowrap;
     height: 30px;
     background-color: var(--bg-tab-inactive);
     border-bottom: 1px solid var(--border-subtle);
     padding: 0 4px;
     gap: 1px;
     align-items: flex-end;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .console-tabs::-webkit-scrollbar {
+    height: 3px;
+  }
+
+  .console-tabs::-webkit-scrollbar-thumb {
+    background: var(--bg-active);
+    border-radius: 2px;
   }
 
   .console-tab {
@@ -189,6 +363,8 @@
     border-radius: 4px 4px 0 0;
     position: relative;
     user-select: none;
+    flex-shrink: 0;
+    white-space: nowrap;
   }
 
   .console-tab:hover {
@@ -356,5 +532,88 @@
   .console-output::-webkit-scrollbar-thumb {
     background: var(--bg-active);
     border-radius: 3px;
+  }
+
+  /* Native input styling */
+  .cmd-input-native {
+    flex: 1;
+    padding: 6px 10px 6px 30px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    height: 28px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    color: var(--fg-primary);
+    outline: none;
+    width: 100%;
+  }
+
+  .cmd-input-native:focus {
+    border-color: var(--accent-primary);
+  }
+
+  .cmd-input-native::placeholder {
+    color: var(--fg-tertiary);
+  }
+
+  /* Suggestion dropdown */
+  .suggestions-dropdown {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    margin-bottom: 4px;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    z-index: 100;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 12px;
+    background: transparent;
+    border: none;
+    width: 100%;
+    text-align: left;
+    color: var(--fg-secondary);
+  }
+
+  .suggestion-item:hover,
+  .suggestion-item.selected {
+    background-color: var(--bg-hover);
+    color: var(--fg-primary);
+  }
+
+  .suggestion-icon {
+    color: var(--fg-tertiary);
+    display: flex;
+    align-items: center;
+  }
+
+  .suggestion-item.selected .suggestion-icon,
+  .suggestion-item:hover .suggestion-icon {
+    color: var(--accent-primary);
+  }
+
+  .suggestion-cmd {
+    font-family: var(--font-mono);
+    color: var(--fg-primary);
+    flex: 1;
+  }
+
+  .suggestion-desc {
+    font-size: 11px;
+    color: var(--fg-tertiary);
+    opacity: 0.7;
   }
 </style>

@@ -32,6 +32,7 @@ uuid = { version = "1.0", features = ["v4"] }
 image = "0.25"
 ico = "0.3"
 icns = "0.3"
+glob = "0.3"
 
 
 

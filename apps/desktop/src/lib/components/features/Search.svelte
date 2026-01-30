@@ -18,6 +18,8 @@
 
   let searchQuery = $state("");
   let replaceQuery = $state("");
+  let includePattern = $state("");
+  let excludePattern = $state("");
   let isReplaceVisible = $state(false);
   let isIncludesVisible = $state(false);
   let isSearching = $state(false);
@@ -38,7 +40,11 @@
     if (searchQuery.trim().length >= 2) {
       isSearching = true;
       debounceTimer = setTimeout(async () => {
-        await uiState.searchProject(searchQuery);
+        await uiState.searchProject(
+          searchQuery,
+          includePattern,
+          excludePattern,
+        );
         isSearching = false;
       }, 300);
     } else {
@@ -62,7 +68,7 @@
   function handleSearch(e: KeyboardEvent) {
     if (e.key === "Enter") {
       if (debounceTimer) clearTimeout(debounceTimer);
-      uiState.searchProject(searchQuery);
+      uiState.searchProject(searchQuery, includePattern, excludePattern);
     }
   }
 </script>
@@ -138,11 +144,19 @@
       <div class="filters-group">
         <div class="filter-item">
           <label for="search-include">files to include</label>
-          <Input id="search-include" placeholder="e.g. *.ts, src/**" />
+          <Input
+            id="search-include"
+            placeholder="e.g. *.ts, src/**"
+            bind:value={includePattern}
+          />
         </div>
         <div class="filter-item">
           <label for="search-exclude">files to exclude</label>
-          <Input id="search-exclude" placeholder="e.g. node_modules, dist" />
+          <Input
+            id="search-exclude"
+            placeholder="e.g. node_modules, dist"
+            bind:value={excludePattern}
+          />
         </div>
       </div>
     {/if}

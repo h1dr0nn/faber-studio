@@ -304,10 +304,15 @@ export function createUIState() {
       } catch (err) { console.error(err); }
     },
     get searchResults() { return searchResults; },
-    async searchProject(query: string) {
+    async searchProject(query: string, include?: string, exclude?: string) {
       if (!projectRoot || !query) return;
       try {
-        searchResults = await invoke("search_in_files", { query, path: projectRoot, include: null, exclude: null });
+        searchResults = await invoke("search_in_files", { 
+          query, 
+          path: projectRoot, 
+          include: include && include.trim() ? include : null, 
+          exclude: exclude && exclude.trim() ? exclude : null 
+        });
         if (activeActivityId !== "search") { activeActivityId = "search"; activeSidePanelTitle = "SEARCH"; saveUIState(); }
       } catch (err) { console.error(err); }
     },

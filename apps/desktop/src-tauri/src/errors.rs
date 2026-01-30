@@ -12,6 +12,8 @@ pub enum AppError {
     Internal(String),
     #[error("NotFound: {0}")]
     NotFound(String),
+    #[error("NotSupported: {0}")]
+    NotSupported(String),
 }
 
 impl From<std::io::Error> for AppError {

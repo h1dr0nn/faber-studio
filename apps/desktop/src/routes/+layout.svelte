@@ -9,8 +9,7 @@
   import TreeItem from "$lib/components/ui/TreeItem.svelte";
   import Tabs from "$lib/components/ui/Tabs.svelte";
   import Toast from "$lib/components/ui/Toast.svelte";
-  import MatrixLog from "$lib/components/features/MatrixLog.svelte";
-  import CommandRunner from "$lib/components/features/CommandRunner.svelte";
+  import Console from "$lib/components/features/Console.svelte";
   import {
     FileCode,
     Search,
@@ -40,6 +39,7 @@
   import AppSettings from "$lib/components/features/AppSettings.svelte";
   import CloneRepo from "$lib/components/features/CloneRepo.svelte";
   import Chat from "$lib/components/features/Chat.svelte";
+  import QuickCommands from "$lib/components/features/QuickCommands.svelte";
   import ContextMenu from "$lib/components/ui/ContextMenu.svelte";
   import Editor from "$lib/components/features/Editor.svelte";
 
@@ -164,6 +164,22 @@
                       `${uiState.projectRoot}/.vscode/launch.json`,
                       "launch.json",
                     ),
+                },
+              );
+            } else if (uiState.activeActivityId === "commands") {
+              items.push(
+                {
+                  label: "Refresh Project Info",
+                  onclick: () => {
+                    // Refresh project info in QuickCommands if needed
+                  },
+                },
+                { separator: true },
+                {
+                  label: "Toggle All Sections",
+                  onclick: () => {
+                    // Logic to toggle all
+                  },
                 },
               );
             }
@@ -361,6 +377,8 @@
             <SourceControl />
           {:else if uiState.activeActivityId === "debug"}
             <RunAndDebug />
+          {:else if uiState.activeActivityId === "commands"}
+            <QuickCommands />
           {/if}
         </SidePanel>
 
@@ -441,51 +459,24 @@
           >
             <div class="bottom-tabs">
               <button
-                class="bottom-tab {uiState.activeBottomPanelTab === 'runner'
+                class="bottom-tab {uiState.activeBottomPanelTab === 'console'
                   ? 'active'
                   : ''}"
-                onclick={() => (uiState.activeBottomPanelTab = "runner")}
-                oncontextmenu={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  uiState.showContextMenu(e.clientX, e.clientY, [
-                    { label: "Move to Side Bar", onclick: () => {} },
-                    { label: "Close", onclick: () => {} },
-                  ]);
-                }}
+                onclick={() => (uiState.activeBottomPanelTab = "console")}
               >
                 <Terminal size={14} />
-                COMMAND RUNNER
-              </button>
-              <button
-                class="bottom-tab {uiState.activeBottomPanelTab === 'matrix'
-                  ? 'active'
-                  : ''}"
-                onclick={() => (uiState.activeBottomPanelTab = "matrix")}
-                oncontextmenu={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  uiState.showContextMenu(e.clientX, e.clientY, [
-                    { label: "Move to Side Bar", onclick: () => {} },
-                    { label: "Close", onclick: () => {} },
-                  ]);
-                }}
-              >
-                <Activity size={14} />
-                MATRIX LOG
+                CONSOLE
               </button>
             </div>
 
             <div class="bottom-actions">
-              {#if uiState.activeBottomPanelTab === "matrix"}
-                <button
-                  class="action-btn"
-                  title="Clear Logs"
-                  onclick={() => appConsole.clear()}
-                >
-                  <Trash2 size={14} />
-                </button>
-              {/if}
+              <button
+                class="action-btn"
+                title="Clear Console"
+                onclick={() => appConsole.clear()}
+              >
+                <Trash2 size={14} />
+              </button>
               <button
                 class="action-btn"
                 title="Close Panel"
@@ -496,10 +487,8 @@
             </div>
           </div>
           <div class="bottom-panel-content">
-            {#if uiState.activeBottomPanelTab === "runner"}
-              <CommandRunner />
-            {:else if uiState.activeBottomPanelTab === "matrix"}
-              <MatrixLog />
+            {#if uiState.activeBottomPanelTab === "console"}
+              <Console />
             {/if}
           </div>
         </div>

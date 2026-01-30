@@ -11,7 +11,7 @@ export function createUIState() {
   let isRightPanelVisible = $state(false);
   let activeSidePanelTitle = $state("EXPLORER");
   let activeRightSidePanelTitle = $state("DOCTOR");
-  let activeBottomPanelTab = $state("runner");
+  let activeBottomPanelTab = $state("console");
 
   let sidebarWidth = $state(250);
   let rightSidebarWidth = $state(360);
@@ -471,7 +471,10 @@ export function createUIState() {
     get activeTaskId() { return activeTaskId; },
     async runTask(command: string, args: string[] = []) {
       if (!projectRoot) return;
-      try { const taskId = await invoke("run_command", { command, args, cwd: projectRoot }); activeTaskId = taskId as string; activeActivityId = "matrix"; } catch (err) { console.error(err); }
+      try { 
+        const taskId = await invoke("run_command", { command, args, cwd: projectRoot }); 
+        activeTaskId = taskId as string; 
+      } catch (err) { console.error(err); }
     },
 
     get chatMessages() { return chatMessages; },

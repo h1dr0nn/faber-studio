@@ -315,6 +315,7 @@ body {
   line-height: 1.5;
   overflow: hidden; /* App-like behavior */
   user-select: none; /* App-like behavior */
+  -webkit-user-select: none;
 }
 
 /* Scrollbars */

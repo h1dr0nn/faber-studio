@@ -7,6 +7,7 @@
     Bug,
     Settings,
     UserCircle,
+    Terminal,
   } from "lucide-svelte";
 
   let activities = [
@@ -14,6 +15,12 @@
     { id: "search", icon: Search, label: "Search", href: "/search" },
     { id: "git", icon: GitGraph, label: "Source Control", href: "/git" },
     { id: "debug", icon: Bug, label: "Run and Debug", href: "/debug" },
+    {
+      id: "commands",
+      icon: Terminal,
+      label: "Quick Commands",
+      href: "/commands",
+    },
   ];
 
   let bottomActivities = [
@@ -44,6 +51,10 @@
       {
         label: "Run and Debug",
         onclick: () => (uiState.activeActivityId = "debug"),
+      },
+      {
+        label: "Quick Commands",
+        onclick: () => (uiState.activeActivityId = "commands"),
       },
       { separator: true },
       { label: "Accounts", onclick: () => {}, disabled: true },

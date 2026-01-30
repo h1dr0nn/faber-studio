@@ -209,6 +209,8 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+    user-select: text !important;
+    -webkit-user-select: text !important;
   }
 
   .empty-state {

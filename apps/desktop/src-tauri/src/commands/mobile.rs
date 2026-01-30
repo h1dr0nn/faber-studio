@@ -1,8 +1,5 @@
 use crate::errors::AppResult;
 use serde::Serialize;
-use std::process::Command;
-use std::path::PathBuf;
-use tauri::Manager;
 
 
 #[derive(Serialize, Clone, Debug)]

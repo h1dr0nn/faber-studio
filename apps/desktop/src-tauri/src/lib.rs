@@ -30,6 +30,13 @@ pub fn run() {
             commands::git::git_branch,
             commands::config::save_config,
             commands::config::load_config,
+            commands::quick_commands::detect_package_manager,
+            commands::quick_commands::detect_project_info,
+            commands::quick_commands::read_android_version,
+            commands::quick_commands::update_android_version,
+            commands::quick_commands::find_android_artifacts,
+            commands::quick_commands::manage_build_artifact,
+            commands::quick_commands::open_xcode_project,
         ])
         .setup(|app| {
             if cfg!(debug_assertions) {

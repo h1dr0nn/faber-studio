@@ -25,6 +25,33 @@ pub async fn run_command(app: AppHandle, command: String, args: Vec<String>, cwd
 
         let mut cmd = Command::new(prog);
         cmd.args(&final_args);
+        
+        // Inherit environment variables from parent process
+        // Filter out pnpm/npm-specific config vars that conflict
+        let mut filtered_env: std::collections::HashMap<String, String> = std::env::vars()
+            .filter(|(key, _)| {
+                let key_lower = key.to_lowercase();
+                // Filter npm config vars (npm_config_xxx)
+                !key_lower.starts_with("npm_config_") && 
+                !key_lower.starts_with("npm_package_") &&
+                !key_lower.starts_with("npm_lifecycle_") &&
+                // Filter pnpm vars
+                !key_lower.starts_with("pnpm_") &&
+                // Filter specific problematic vars
+                key_lower != "init_cwd" &&
+                key_lower != "npm_execpath"
+            })
+            .collect();
+        
+        // Add NODE_PATH to help npm find modules
+        if let Some(ref dir) = cwd {
+            let node_modules = std::path::Path::new(dir).join("node_modules");
+            if node_modules.exists() {
+                filtered_env.insert("NODE_PATH".to_string(), node_modules.to_string_lossy().to_string());
+            }
+        }
+        
+        cmd.envs(filtered_env);
 
         
         // Hide window on Windows to avoid popping up console windows
